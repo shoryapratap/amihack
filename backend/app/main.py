@@ -31,6 +31,7 @@ def read_root():
 def health_check():
     return {"status": "healthy"}
 
-from app.routers import restaurants
+from app.routers import restaurants, certificates
 app.include_router(restaurants.router, prefix="/api/v1")
+app.include_router(certificates.router, prefix="/api/v1")
 

@@ -244,9 +244,11 @@ async def simulate_restaurant_reply(restaurant_id: str, payload: ReplySimulateRe
     parsed = await parse_restaurant_reply(payload.reply_text)
 
     if parsed["has_surplus"]:
+        now_iso = datetime.now().isoformat()
         restaurant["status"] = "Surplus Confirmed"
         restaurant["surplus_data"] = {
-            "confirmed_at": datetime.now().isoformat(),
+            "confirmed_at": now_iso,
+            "donor_submitted_at": now_iso,
             "reply_text": payload.reply_text,
             "parsed": parsed
         }
@@ -264,6 +266,87 @@ async def simulate_restaurant_reply(restaurant_id: str, payload: ReplySimulateRe
         "restaurant": restaurant,
         "parsed_reply": parsed,
         "ready_to_schedule": parsed["has_surplus"]
+    }
+
+class AcceptAndCertifyRequest(BaseModel):
+    volunteer_name: str = "Aman (Field Volunteer ID #GF-402)"
+    ngo_name: str = "Green Future Foundation"
+    pickup_notes: Optional[str] = "Inspected clean thermal containers and packaging."
+
+@router.post("/{restaurant_id}/accept-and-certify")
+async def accept_and_certify_donation(restaurant_id: str, payload: AcceptAndCertifyRequest):
+    """
+    NGO Dual-Confirmation & Certificate Generation:
+    1. Validates that the donor previously submitted surplus (server timestamp 1).
+    2. Logs the NGO acceptance action with server timestamp 2 and volunteer ID.
+    3. Issues the official FSSAI 2019 Good Samaritan Liability Protection Certificate.
+    4. Automatically dispatches the verified certificate link to the donor via WhatsApp.
+    """
+    from app.services.certificate_service import create_liability_certificate
+
+    restaurant = next((r for r in RESTAURANTS_DB if r["id"] == restaurant_id), None)
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restaurant not found")
+
+    surplus_data = restaurant.get("surplus_data")
+    donor_submitted_at = surplus_data.get("donor_submitted_at") if surplus_data else None
+
+    # Strict Rule: Must have donor submission timestamp
+    if not donor_submitted_at:
+        raise HTTPException(
+            status_code=400,
+            detail="Dual-Party Confirmation Violation: Cannot generate certificate. The donor has not submitted a surplus offer yet. Both donor submission and NGO acceptance timestamps are legally required under FSSAI 2019."
+        )
+
+    ngo_accepted_at = datetime.now().isoformat()
+    food_desc = surplus_data.get("reply_text") or f"{restaurant.get('avg_daily_surplus', '40 portions')} of {restaurant.get('cuisine', 'fresh food')}"
+
+    # Generate immutable dual-confirmed certificate
+    cert = create_liability_certificate(
+        donor_name=restaurant["name"],
+        donor_phone=restaurant.get("phone", settings.DEFAULT_RESTAURANT_NUMBER),
+        donor_address=restaurant.get("address", "Civil Lines, Jaipur"),
+        food_description=food_desc,
+        donor_submitted_at=donor_submitted_at,
+        ngo_accepted_at=ngo_accepted_at,
+        ngo_accepted_by=payload.volunteer_name,
+        ngo_name=payload.ngo_name
+    )
+
+    # Automatically notify donor via WhatsApp with certificate link
+    target_phone = restaurant.get("phone", settings.DEFAULT_RESTAURANT_NUMBER)
+    cert_id = cert["id"]
+    verification_url = cert["security"]["verificationUrl"]
+
+    whatsapp_msg = (
+        f"Namaste! 🙏 Green Future Foundation has verified and officially accepted your surplus food donation.\n\n"
+        f"📜 Official FSSAI 2019 Donation Protection Certificate Generated!\n\n"
+        f"🛡️ Legal Protection: Under FSSAI (Recovery & Distribution of Surplus Food) Regulations 2019, "
+        f"your good-faith donation is legally protected from civil and criminal liability.\n\n"
+        f"• Certificate ID: {cert_id}\n"
+        f"• Verified Link: {verification_url}\n\n"
+        f"Thank you for helping us feed families in need today!"
+    )
+
+    whatsapp_result = await send_twilio_whatsapp(
+        to_number=target_phone,
+        message=whatsapp_msg
+    )
+
+    # Update restaurant state
+    restaurant["status"] = "Certificate Issued & Protected"
+    restaurant["certificate"] = cert
+    restaurant["ngo_acceptance"] = {
+        "accepted_at": ngo_accepted_at,
+        "accepted_by": payload.volunteer_name,
+        "notes": payload.pickup_notes
+    }
+
+    return {
+        "success": True,
+        "message": f"Liability Protection Certificate generated and dispatched to {restaurant['name']}",
+        "certificate": cert,
+        "whatsapp_notification": whatsapp_result
     }
 
 @router.post("/webhook/twilio/whatsapp")
@@ -286,22 +369,27 @@ async def twilio_whatsapp_webhook(
             break
 
     if matched:
+        now_iso = datetime.now().isoformat()
         if parsed["has_surplus"]:
             matched["status"] = "Surplus Confirmed"
             matched["surplus_data"] = {
-                "confirmed_at": datetime.now().isoformat(),
+                "confirmed_at": now_iso,
+                "donor_submitted_at": now_iso,
                 "reply_text": Body,
                 "parsed": parsed
             }
         matched["last_reply"] = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": now_iso,
             "text": Body,
             "parsed": parsed,
             "sid": MessageSid
         }
 
     # Respond with TwiML
-    ack_text = "Thank you! Our volunteer driver has been notified and will coordinate pickup shortly. - Green Future Foundation"
+    ack_text = (
+        "Namaste! Thank you for confirming surplus food. Our volunteer driver is on the way. "
+        "Upon pickup, an official FSSAI 2019 Liability Protection Certificate will be issued to you. - Green Future Foundation"
+    )
     twiml_response = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Message>{ack_text}</Message>
@@ -309,3 +397,4 @@ async def twilio_whatsapp_webhook(
 
     from fastapi.responses import Response
     return Response(content=twiml_response, media_type="application/xml")
+

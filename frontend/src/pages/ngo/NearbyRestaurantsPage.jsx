@@ -68,6 +68,8 @@ export default function NearbyRestaurantsPage() {
   const [simulatingReply, setSimulatingReply] = useState(false);
   const [replyResult, setReplyResult] = useState(null);
   const [addedToSchedule, setAddedToSchedule] = useState(false);
+  const [certifying, setCertifying] = useState(false);
+  const [certificateResult, setCertificateResult] = useState(null);
 
   useEffect(() => {
     fetchRestaurants();
@@ -96,6 +98,7 @@ export default function NearbyRestaurantsPage() {
     setOutreachResult(null);
     setReplyResult(null);
     setAddedToSchedule(false);
+    setCertificateResult(restaurant.certificate || null);
 
     try {
       const res = await api.connectRestaurant(restaurant.id, {
@@ -144,6 +147,32 @@ export default function NearbyRestaurantsPage() {
     }
   };
 
+  const handleAcceptAndCertify = async (restaurantId) => {
+    setCertifying(true);
+    try {
+      const res = await api.acceptAndCertifyDonation(restaurantId, {
+        volunteer_name: 'Aman (Field Volunteer ID #GF-402)',
+        ngo_name: 'Green Future Foundation',
+        pickup_notes: 'Sanitized food containers inspected and verified.'
+      });
+      setCertificateResult(res.certificate);
+
+      // Update local state
+      setRestaurants((prev) =>
+        prev.map((r) =>
+          r.id === restaurantId
+            ? { ...r, status: 'Certificate Issued & Protected', certificate: res.certificate }
+            : r
+        )
+      );
+    } catch (err) {
+      console.error('Failed to certify donation:', err);
+      alert('Certification failed: ' + err.message);
+    } finally {
+      setCertifying(false);
+    }
+  };
+
   const filteredRestaurants = restaurants.filter((r) => {
     const matchesSearch =
       r.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -164,24 +193,56 @@ export default function NearbyRestaurantsPage() {
               Live Food Recovery Radar
             </span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-            Nearby Restaurants & AI Outreach
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5 max-w-2xl">
-            Restaurants never need to register. Simply click to connect — our Gemini AI calls or messages the manager on WhatsApp to secure surplus food donations.
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight mt-1">
+            Nearby Restaurants & Surplus Hubs
+          </h1>
+          <p className="text-xs text-slate-500 mt-1 max-w-xl">
+            Single-click automated Gemini AI outreach. Restaurants are discovered on the map and contacted via WhatsApp/Call. Zero restaurant registration required.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
-          <div className="px-3.5 py-1.5 rounded-2xl bg-sky-50 border border-sky-200/80 text-sky-800 font-semibold flex items-center gap-1.5">
-            <MessageSquare className="w-3.5 h-3.5 text-sky-500" />
-            <span>Twilio WhatsApp Active</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchRestaurants}
+            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-700 font-semibold text-xs transition flex items-center gap-1.5 shadow-sm"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh Map</span>
+          </button>
+        </div>
+      </div>
+
+      {/* FSSAI 2019 Good Samaritan Liability Protection Info Card */}
+      <div className="rounded-3xl bg-gradient-to-r from-sky-50 via-white to-emerald-50 border border-sky-200/80 p-5 sm:p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700 shrink-0">
+            <ShieldCheck className="w-6 h-6" />
           </div>
-          <div className="px-3.5 py-1.5 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-800 font-semibold flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-            <span>Gemini AI Connected</span>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-sky-200/80 text-sky-900">
+                FSSAI 2019 Statutory Protection
+              </span>
+              <span className="text-[10px] text-slate-500 font-semibold">
+                Good Samaritan Donor Immunity
+              </span>
+            </div>
+            <h3 className="text-sm font-bold text-slate-900">
+              Zero Legal Liability for Good-Faith Food Donors
+            </h3>
+            <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+              Under <strong>FSSAI (Recovery & Distribution of Surplus Food) Regulations, 2019</strong>, bona fide food donors are legally protected from civil and criminal liability for consumption-related harm. Our system auto-generates dual-confirmed, tamper-proof audit certificates sent directly to the donor on WhatsApp.
+            </p>
           </div>
         </div>
+
+        <Link
+          to="/verify/CERT-2026-001"
+          className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-sky-700 font-semibold text-xs transition shrink-0 flex items-center gap-1.5 shadow-sm"
+        >
+          <span>View Sample Certificate</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </Link>
       </div>
 
       {/* Main Grid: Interactive Map + Restaurant Directory */}
@@ -352,32 +413,47 @@ export default function NearbyRestaurantsPage() {
                   </div>
 
                   {/* 1-Click Action Buttons */}
-                  <div className="flex items-center gap-2 pt-1">
-                    <button
-                      onClick={() => handleConnect(item, 'whatsapp')}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#151c2e] hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition active:scale-95"
-                      title="Send Gemini WhatsApp Outreach"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>AI WhatsApp</span>
-                    </button>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {item.certificate ? (
+                      <Link
+                        to={`/verify/${item.certificate.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>View FSSAI Certificate ({item.certificate.id})</span>
+                        <ExternalLink className="w-3 h-3 ml-1" />
+                      </Link>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleConnect(item, 'whatsapp')}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#151c2e] hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition active:scale-95"
+                          title="Send Gemini WhatsApp Outreach"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>AI WhatsApp</span>
+                        </button>
 
-                    <button
-                      onClick={() => handleConnect(item, 'call')}
-                      className="inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm transition active:scale-95"
-                      title="Trigger Voice Call via Twilio"
-                    >
-                      <PhoneCall className="w-3.5 h-3.5 text-sky-600" />
-                      <span>AI Call</span>
-                    </button>
+                        <button
+                          onClick={() => handleConnect(item, 'call')}
+                          className="inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm transition active:scale-95"
+                          title="Trigger Voice Call via Twilio"
+                        >
+                          <PhoneCall className="w-3.5 h-3.5 text-sky-600" />
+                          <span>AI Call</span>
+                        </button>
 
-                    <button
-                      onClick={() => handleConnect(item, 'both')}
-                      className="inline-flex items-center justify-center py-2 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 font-semibold text-xs border border-sky-200 shadow-sm transition"
-                      title="Send Both Call & WhatsApp"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-                    </button>
+                        <button
+                          onClick={() => handleConnect(item, 'both')}
+                          className="inline-flex items-center justify-center py-2 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 font-semibold text-xs border border-sky-200 shadow-sm transition"
+                          title="Send Both Call & WhatsApp"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               );
@@ -519,21 +595,77 @@ export default function NearbyRestaurantsPage() {
                   </button>
                 </div>
 
-                {/* Reply Confirmation Card */}
-                {replyResult && (
-                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2 animate-in fade-in">
-                    <div className="flex items-center justify-between text-xs font-bold text-emerald-900">
-                      <span>✓ Manager Reply Received & Parsed</span>
-                      <span className="text-[10px] text-emerald-700">Ready for Logistics</span>
+                {/* Step 2: Dual-Party Confirmation & FSSAI 2019 Certificate Generation */}
+                {(replyResult || activeRestaurant.surplus_data) && (
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-sky-50 border-2 border-emerald-300 space-y-3 animate-in fade-in">
+                    <div className="flex items-center justify-between text-xs font-bold text-emerald-950">
+                      <span className="flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                        Donor Trust & Legal Protection Layer
+                      </span>
+                      <span className="text-[10px] font-mono text-emerald-700 font-bold">FSSAI 2019</span>
                     </div>
-                    <p className="text-[11px] text-slate-700 italic">
-                      "{replyResult.restaurant.surplus_data?.reply_text}"
-                    </p>
 
-                    <div className="grid grid-cols-2 gap-2 text-[10px] pt-1 text-slate-700">
-                      <div>Quantity: <strong>45 Meals (Hot Veg)</strong></div>
-                      <div>Pickup By: <strong>3:00 PM</strong></div>
+                    <div className="text-[11px] text-slate-700 space-y-1 bg-white/80 p-3 rounded-xl border border-emerald-100">
+                      <p>
+                        <strong>Donor Offer:</strong> "{replyResult?.restaurant?.surplus_data?.reply_text || activeRestaurant.surplus_data?.reply_text || '45 meals of hot cooked food ready'}"
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        Server Timestamp 1 (Donor Offer): <span className="font-mono text-slate-700 font-semibold">{replyResult?.restaurant?.surplus_data?.confirmed_at || activeRestaurant.surplus_data?.confirmed_at || 'Recorded'}</span>
+                      </p>
                     </div>
+
+                    {/* Certificate Status or Action */}
+                    {certificateResult || activeRestaurant.certificate ? (
+                      <div className="p-3.5 rounded-xl bg-white border border-emerald-200 space-y-2">
+                        <div className="flex items-center justify-between text-xs font-bold text-emerald-800">
+                          <span className="flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            Official Certificate Issued & Protected!
+                          </span>
+                          <span className="font-mono text-[11px] text-slate-800 font-bold">
+                            {(certificateResult || activeRestaurant.certificate).id}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600">
+                          Dual-confirmed tamper-proof record locked in database. WhatsApp proof link automatically dispatched to {activeRestaurant.phone}.
+                        </p>
+                        <div className="pt-1 flex gap-2">
+                          <Link
+                            to={`/verify/${(certificateResult || activeRestaurant.certificate).id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs text-center transition flex items-center justify-center gap-1.5 shadow-sm"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>View Public Certificate & QR</span>
+                          </Link>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-[11px] text-slate-600 leading-relaxed">
+                          Accepting this donation will record server timestamp 2 (NGO Acceptance) and immediately issue the official FSSAI 2019 Liability Protection Certificate to the donor over WhatsApp.
+                        </p>
+                        <button
+                          onClick={() => handleAcceptAndCertify(activeRestaurant.id)}
+                          disabled={certifying}
+                          className="w-full py-2.5 rounded-xl bg-[#151c2e] hover:bg-slate-800 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm"
+                        >
+                          {certifying ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Dual-Confirming & Generating Certificate...</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                              <span>Accept & Issue FSSAI Liability Protection Certificate</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
 
                     <button
                       onClick={() => {
@@ -541,7 +673,7 @@ export default function NearbyRestaurantsPage() {
                         alert(`Surplus from ${activeRestaurant.name} has been added to your schedule!`);
                       }}
                       disabled={addedToSchedule}
-                      className="w-full mt-2 py-2 rounded-xl bg-[#151c2e] hover:bg-slate-800 disabled:bg-emerald-700 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5"
+                      className="w-full mt-2 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:bg-emerald-100 text-slate-800 disabled:text-emerald-800 font-semibold text-xs transition flex items-center justify-center gap-1.5"
                     >
                       <Calendar className="w-3.5 h-3.5" />
                       <span>{addedToSchedule ? '✓ Scheduled on Board' : 'Add to Rescue Schedule'}</span>
