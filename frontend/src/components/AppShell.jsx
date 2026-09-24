@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  Heart,
   LayoutGrid,
   CalendarDays,
   Truck,
@@ -54,9 +53,14 @@ export default function AppShell({ children }) {
         {/* Top Brand Circle */}
         <button
           onClick={() => navigate('/ngo/dashboard')}
-          className="w-11 h-11 rounded-full bg-white/90 hover:bg-white border border-white shadow-sm flex items-center justify-center transition-transform hover:scale-105"
+          className="w-11 h-11 rounded-full bg-white/90 hover:bg-white border border-white shadow-sm flex items-center justify-center transition-transform hover:scale-105 overflow-hidden p-1.5"
+          title="Surplus-to-Shelter"
         >
-          <Heart className="w-5 h-5 text-sky-500 fill-sky-400" />
+          <img
+            src="/SSLOGO.png"
+            alt="Surplus-to-Shelter Logo"
+            className="w-full h-full object-contain"
+          />
         </button>
 
         {/* Central Vertical Pill Dock */}
