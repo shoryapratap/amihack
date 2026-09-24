@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSearch } from '../context/SearchContext';
 import {
   LayoutGrid,
   CalendarDays,
@@ -23,10 +24,10 @@ import {
 
 export default function AppShell({ children }) {
   const { user, switchRole, availableRoles, logout } = useAuth();
+  const { searchQuery, setSearchQuery } = useSearch();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);

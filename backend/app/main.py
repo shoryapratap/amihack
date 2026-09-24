@@ -37,11 +37,12 @@ def health_check():
     return {"status": "healthy"}
 
 
-from app.routers import restaurants, certificates, ngos, ngo_verification, auth
+from app.routers import restaurants, certificates, ngos, ngo_verification, auth, admin
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(restaurants.router, prefix="/api/v1")
 app.include_router(certificates.router, prefix="/api/v1")
 app.include_router(ngos.router, prefix="/api/v1")
 app.include_router(ngo_verification.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")
 
 

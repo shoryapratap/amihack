@@ -1,20 +1,67 @@
-import React from 'react';
-import { ShieldCheck, TrendingUp, Users, HeartHandshake, CheckCircle2, AlertCircle, FileText, ArrowUpRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useSearch } from '../../context/SearchContext';
+import api from '../../services/api';
+import { ShieldCheck, TrendingUp, Users, HeartHandshake, CheckCircle2, AlertCircle, FileText, ArrowUpRight, RefreshCw } from 'lucide-react';
 
 export default function AdminDashboard() {
-  const kpis = [
+  const { searchQuery } = useSearch();
+  const [kpis, setKpis] = useState([
     { label: 'Total Meals Rescued', value: '14,820', change: '+18.4% this week', icon: HeartHandshake, color: 'text-sky-600', bg: 'bg-sky-50' },
     { label: 'Active Verified Shelters', value: '42', change: '100% Darpan & FSSAI', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { label: 'Average Feasibility Match', value: '94.2%', change: '< 35 mins transit', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Average Feasibility Match', value: '96.5%', change: '< 35 mins transit', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { label: 'Tax & Audit Certificates', value: '318', change: '80G & FSSAI Compliant', icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50' },
-  ];
+  ]);
 
-  const recentRescues = [
-    { donor: 'Taj Palace Banquet', shelter: 'Green Future Shelter', meals: '80 Meals', status: 'Completed', fssaiId: '10000000000001', certId: 'CERT-2026-089' },
-    { donor: 'ITC Rajputana Kitchen', shelter: 'Anand Dham Seva', meals: '120 Meals', status: 'In Transit', fssaiId: '10000000000002', certId: 'CERT-2026-090' },
-    { donor: 'BigBasket Fresh Hub', shelter: 'Hope Child Care', meals: '70 kg Produce', status: 'Delivered', fssaiId: '10000000000008', certId: 'CERT-2026-091' },
-    { donor: 'Oberoi Convention Center', shelter: 'Seva Rasoi Trust', meals: '90 Meals', status: 'Scheduled', fssaiId: '10000000000003', certId: 'CERT-2026-092' },
-  ];
+  const [recentRescues, setRecentRescues] = useState([
+    { donor: 'The Grand Palace Banquet', shelter: 'Green Future Shelter', meals: '50 Meals', status: 'Completed', fssaiId: '22221074000456', certId: 'CERT-2026-001' },
+    { donor: 'ITC Rajputana Kitchen', shelter: 'Anand Dham Seva', meals: '120 Meals', status: 'In Transit', fssaiId: '10020011000142', certId: 'CERT-2026-090' },
+    { donor: 'BigBasket Fresh Hub', shelter: 'Hope Child Care', meals: '70 kg Produce', status: 'Delivered', fssaiId: '10020011000143', certId: 'CERT-2026-091' },
+    { donor: 'Haldiram Sweets & Dining', shelter: 'Seva Rasoi Trust', meals: '90 Meals', status: 'Scheduled', fssaiId: '10020011000144', certId: 'CERT-2026-092' },
+  ]);
+
+  const loadData = async () => {
+    try {
+      const kpiRes = await api.getAdminKPIs();
+      if (kpiRes && kpiRes.kpis) {
+        setKpis((prev) =>
+          prev.map((item, idx) => ({
+            ...item,
+            value: kpiRes.kpis[idx]?.value || item.value,
+            change: kpiRes.kpis[idx]?.change || item.change,
+          }))
+        );
+      }
+      const certRes = await api.getCertificates();
+      if (certRes && certRes.certificates && certRes.certificates.length > 0) {
+        const liveRows = certRes.certificates.map((c) => ({
+          donor: c.donor,
+          shelter: c.recipient,
+          meals: c.cargo,
+          status: 'Certified & Protected',
+          fssaiId: '22221074000456',
+          certId: c.certId,
+        }));
+        setRecentRescues((prev) => [...liveRows, ...prev.filter((p) => !liveRows.some((l) => l.certId === p.certId))]);
+      }
+    } catch (e) {
+      console.warn('Admin stats load notice:', e);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const filteredRescues = recentRescues.filter((r) => {
+    const q = searchQuery.toLowerCase().trim();
+    return (
+      !q ||
+      r.donor.toLowerCase().includes(q) ||
+      r.shelter.toLowerCase().includes(q) ||
+      r.meals.toLowerCase().includes(q) ||
+      r.certId.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -64,7 +111,7 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/80">
-              {recentRescues.map((row, idx) => (
+              {filteredRescues.map((row, idx) => (
                 <tr key={idx} className="hover:bg-slate-50/50 transition">
                   <td className="py-3.5 px-3 font-bold text-slate-800">{row.donor}</td>
                   <td className="py-3.5 px-3 font-medium text-slate-600">{row.shelter}</td>
@@ -81,6 +128,13 @@ export default function AdminDashboard() {
                   </td>
                 </tr>
               ))}
+              {filteredRescues.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="text-center py-8 text-slate-400 text-xs">
+                    No rescue records match your search.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

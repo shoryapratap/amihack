@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { SearchProvider } from './context/SearchContext';
 import AppShell from './components/AppShell';
 
 // Public & Auth pages
@@ -28,18 +29,32 @@ import AdminRecipients from './pages/admin/AdminRecipients';
 import AdminDrivers from './pages/admin/AdminDrivers';
 import AdminCertificates from './pages/admin/AdminCertificates';
 
+// Initial Entry Gate: Presents Login/Signup as the very first screen
+function InitialEntryGate() {
+  const { isAuthenticated, user } = useAuth();
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+  if (user?.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
+  if (user?.role === 'DRIVER') return <Navigate to="/driver/dashboard" replace />;
+  return <Navigate to="/ngo/dashboard" replace />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppShell>
-          <Routes>
-            {/* Overview / Landing */}
-            <Route path="/" element={<LandingPage />} />
+      <SearchProvider>
+        <Router>
+          <AppShell>
+            <Routes>
+              {/* Very First Screen: Login / Signup Gate */}
+              <Route path="/" element={<InitialEntryGate />} />
+              <Route path="/overview" element={<LandingPage />} />
+              <Route path="/landing" element={<LandingPage />} />
 
-            {/* Role-Based Authentication Routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
+              {/* Role-Based Authentication Routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
 
             {/* Public Certificate Verification */}
             <Route path="/verify/:id" element={<VerifyCertificatePage />} />
@@ -70,6 +85,7 @@ export default function App() {
           </Routes>
         </AppShell>
       </Router>
-    </AuthProvider>
+    </SearchProvider>
+  </AuthProvider>
   );
 }

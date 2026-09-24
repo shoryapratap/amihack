@@ -55,7 +55,10 @@ const ngoIcon = createCustomIcon('#0ea5e9', '🌱');
 const restaurantIcon = createCustomIcon('#1e293b', '🍽️');
 const activeIcon = createCustomIcon('#10b981', '✓');
 
+import { useSearch } from '../../context/SearchContext';
+
 export default function NearbyRestaurantsPage() {
+  const { searchQuery: globalQuery } = useSearch();
   const [restaurants, setRestaurants] = useState([]);
   const [ngoCenter, setNgoCenter] = useState({ lat: 26.914, lng: 75.788, name: 'Green Future Foundation' });
   const [loading, setLoading] = useState(true);
@@ -174,11 +177,14 @@ export default function NearbyRestaurantsPage() {
     }
   };
 
+  const activeSearch = (search || globalQuery || '').toLowerCase().trim();
+
   const filteredRestaurants = restaurants.filter((r) => {
     const matchesSearch =
-      r.name.toLowerCase().includes(search.toLowerCase()) ||
-      r.cuisine.toLowerCase().includes(search.toLowerCase()) ||
-      r.address.toLowerCase().includes(search.toLowerCase());
+      !activeSearch ||
+      r.name?.toLowerCase().includes(activeSearch) ||
+      r.cuisine?.toLowerCase().includes(activeSearch) ||
+      r.address?.toLowerCase().includes(activeSearch);
     return matchesSearch;
   });
 

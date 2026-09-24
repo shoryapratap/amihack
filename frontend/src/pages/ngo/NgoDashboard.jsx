@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useSearch } from '../../context/SearchContext';
+import api from '../../services/api';
 import {
   Plus,
   ChevronLeft,
@@ -8,10 +10,12 @@ import {
   Check,
   X,
   Clock,
-  MapPin
+  MapPin,
+  Search
 } from 'lucide-react';
 
 export default function NgoDashboard() {
+  const { searchQuery } = useSearch();
   const [viewMode, setViewMode] = useState('Day');
   const [selectedPartners, setSelectedPartners] = useState([1, 2, 3, 4]);
   const [selectedCategories, setSelectedCategories] = useState([
@@ -244,6 +248,32 @@ export default function NgoDashboard() {
     setShowAddModal(false);
   };
 
+  useEffect(() => {
+    async function loadLiveDonations() {
+      try {
+        const res = await api.getDonations();
+        if (res && res.donations && res.donations.length > 0) {
+          const liveItems = res.donations.map((d, i) => ({
+            id: `live-don-${d.id}`,
+            colIndex: (i % 4) + 1,
+            timeSlot: '11 am',
+            timeLabel: '11:00 am - 12:30 pm',
+            title: d.donorName || 'Live Surplus Donation',
+            subtitle: d.foodTitle,
+            dotColor: 'bg-emerald-400',
+            striped: false,
+            location: d.pickupAddress,
+            quantity: d.quantity,
+          }));
+          setScheduleItems((prev) => [...liveItems, ...prev.filter((p) => !p.id.startsWith('live-don-'))]);
+        }
+      } catch (e) {
+        console.warn('Notice loading live donations:', e);
+      }
+    }
+    loadLiveDonations();
+  }, []);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       
@@ -469,8 +499,16 @@ export default function NgoDashboard() {
 
                     {/* Columns */}
                     {[1, 2, 3, 4].map((colIndex) => {
+                      const q = (searchQuery || '').toLowerCase().trim();
                       const matchedCards = scheduleItems.filter(
-                        (c) => c.colIndex === colIndex && c.timeSlot === hour
+                        (c) =>
+                          c.colIndex === colIndex &&
+                          c.timeSlot === hour &&
+                          (!q ||
+                            c.title?.toLowerCase().includes(q) ||
+                            c.subtitle?.toLowerCase().includes(q) ||
+                            c.location?.toLowerCase().includes(q) ||
+                            c.quantity?.toLowerCase().includes(q))
                       );
 
                       return (

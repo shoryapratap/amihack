@@ -26,6 +26,7 @@ export default function LoginPage() {
       desc: 'Review surplus matches, manage shelter inventory, and claim donations.',
       icon: Building2,
       demoEmail: 'contact@greenfuture.org',
+      demoPassword: 'NgoPassword@123',
       defaultPath: '/ngo/dashboard',
       color: 'text-sky-600',
       activeBg: 'bg-sky-50 border-sky-300 text-sky-900',
@@ -35,6 +36,7 @@ export default function LoginPage() {
       desc: 'Access refrigerated route manifests, safe hold logs, and pickup orders.',
       icon: Truck,
       demoEmail: 'rajesh.driver@surplus.org',
+      demoPassword: 'DriverPassword@123',
       defaultPath: '/driver/dashboard',
       color: 'text-amber-600',
       activeBg: 'bg-amber-50 border-amber-300 text-amber-900',
@@ -44,6 +46,7 @@ export default function LoginPage() {
       desc: 'Monitor donor trust records, FSSAI Section 24 compliance, and telemetry.',
       icon: ShieldCheck,
       demoEmail: 'admin@surplus.org',
+      demoPassword: 'AdminPassword@123',
       defaultPath: '/admin/dashboard',
       color: 'text-indigo-600',
       activeBg: 'bg-indigo-50 border-indigo-300 text-indigo-900',
@@ -59,9 +62,9 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const demoEmail = roleMeta[selectedRole].demoEmail;
-      await login(demoEmail, 'demo1234', selectedRole);
-      navigate(roleMeta[selectedRole].defaultPath);
+      const meta = roleMeta[selectedRole];
+      await login(meta.demoEmail, meta.demoPassword, selectedRole);
+      navigate(meta.defaultPath);
     } catch (err) {
       setError(err?.message || 'Login failed');
     } finally {
@@ -75,9 +78,11 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const targetEmail = email.trim() || roleMeta[selectedRole].demoEmail;
-      await login(targetEmail, password || 'password', selectedRole);
-      navigate(roleMeta[selectedRole].defaultPath);
+      const meta = roleMeta[selectedRole];
+      const targetEmail = email.trim() || meta.demoEmail;
+      const targetPassword = password.trim() || meta.demoPassword;
+      await login(targetEmail, targetPassword, selectedRole);
+      navigate(meta.defaultPath);
     } catch (err) {
       setError(err?.message || 'Login failed');
     } finally {
