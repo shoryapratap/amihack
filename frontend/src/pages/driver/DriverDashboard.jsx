@@ -114,15 +114,6 @@ export default function DriverDashboard() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                    item.status === 'Delivered'
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : item.status === 'In Transit'
-                      ? 'bg-sky-50 text-sky-700 border border-sky-200'
-                      : 'bg-amber-50 text-amber-700 border border-amber-200'
-                  }`}>
-                    {item.status}
-                  </span>
                   <span className="text-xs text-slate-500 font-medium">ETA: {item.distance}</span>
                 </div>
               </div>

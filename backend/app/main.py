@@ -24,7 +24,6 @@ def read_root():
         "status": "online",
         "service": settings.APP_NAME,
         "version": "1.0.0",
-        "differentiator": "Donor Trust Layer + FSSAI 2019 Protection",
     }
 
 @app.get("/health")

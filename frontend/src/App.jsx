@@ -3,10 +3,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import AppShell from './components/AppShell';
 
-// Public pages
+// Public & Auth pages
 import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 import VerifyCertificatePage from './pages/VerifyCertificatePage';
 import ProfilePage from './pages/ProfilePage';
+import AccountSettingsPage from './pages/AccountSettingsPage';
 
 // NGO pages
 import NgoDashboard from './pages/ngo/NgoDashboard';
@@ -34,15 +37,16 @@ export default function App() {
             {/* Overview / Landing */}
             <Route path="/" element={<LandingPage />} />
 
-            {/* Direct Redirect for any login/signup links */}
-            <Route path="/login" element={<Navigate to="/ngo/dashboard" replace />} />
-            <Route path="/signup" element={<Navigate to="/ngo/dashboard" replace />} />
+            {/* Role-Based Authentication Routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
 
             {/* Public Certificate Verification */}
             <Route path="/verify/:id" element={<VerifyCertificatePage />} />
 
-            {/* Profile */}
+            {/* User Profile & Account Settings */}
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<AccountSettingsPage />} />
 
             {/* NGO Routes */}
             <Route path="/ngo/dashboard" element={<NgoDashboard />} />

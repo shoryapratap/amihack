@@ -378,7 +378,7 @@ export default function NgoDashboard() {
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#151c2e] hover:bg-slate-800 text-white text-xs font-semibold shadow-md shadow-slate-900/10 transition-transform active:scale-95"
               >
                 <Plus className="w-4 h-4" />
-                <span>+ Add new</span>
+                <span> Add new</span>
               </button>
             </div>
           </div>

@@ -159,28 +159,16 @@ export default function NearbyRestaurantsPage() {
       <div className="rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 p-5 sm:p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold uppercase tracking-wider text-sky-600">
               Live Food Recovery Radar
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-            Nearby Restaurants & AI Outreach
+            Nearby Restaurants & Outreach
           </h2>
           <p className="text-xs text-slate-500 mt-0.5 max-w-2xl">
-            Restaurants never need to register. Simply click to connect — our Gemini AI calls or messages the manager on WhatsApp to secure surplus food donations.
+            Restaurants never need to register. Simply click to connect — reach the manager via WhatsApp or call to coordinate surplus food donations.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs">
-          <div className="px-3.5 py-1.5 rounded-2xl bg-sky-50 border border-sky-200/80 text-sky-800 font-semibold flex items-center gap-1.5">
-            <MessageSquare className="w-3.5 h-3.5 text-sky-500" />
-            <span>Twilio WhatsApp Active</span>
-          </div>
-          <div className="px-3.5 py-1.5 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-800 font-semibold flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-            <span>Gemini AI Connected</span>
-          </div>
         </div>
       </div>
 
@@ -243,7 +231,7 @@ export default function NearbyRestaurantsPage() {
                               onClick={() => handleConnect(restaurant, 'whatsapp')}
                               className="w-full py-1 rounded bg-[#151c2e] text-white text-[10px] font-semibold"
                             >
-                              AI WhatsApp
+                              WhatsApp
                             </button>
                           </div>
                         </div>
@@ -356,19 +344,19 @@ export default function NearbyRestaurantsPage() {
                     <button
                       onClick={() => handleConnect(item, 'whatsapp')}
                       className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#151c2e] hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition active:scale-95"
-                      title="Send Gemini WhatsApp Outreach"
+                      title="Send WhatsApp Outreach"
                     >
                       <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>AI WhatsApp</span>
+                      <span>WhatsApp</span>
                     </button>
 
                     <button
                       onClick={() => handleConnect(item, 'call')}
                       className="inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm transition active:scale-95"
-                      title="Trigger Voice Call via Twilio"
+                      title="Initiate Voice Call"
                     >
                       <PhoneCall className="w-3.5 h-3.5 text-sky-600" />
-                      <span>AI Call</span>
+                      <span>Call</span>
                     </button>
 
                     <button
@@ -399,7 +387,7 @@ export default function NearbyRestaurantsPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-sky-600">
-                  AI Automated Outreach
+                  Direct Outreach
                 </span>
                 <h3 className="text-lg font-bold text-slate-900">{activeRestaurant.name}</h3>
               </div>
@@ -416,7 +404,7 @@ export default function NearbyRestaurantsPage() {
               <div className="py-8 text-center space-y-3">
                 <RefreshCw className="w-8 h-8 text-sky-500 animate-spin mx-auto" />
                 <p className="text-xs font-semibold text-slate-700">
-                  Gemini AI drafting custom message & dispatching via Twilio...
+                  Preparing outreach message & dispatching...
                 </p>
                 <p className="text-[11px] text-slate-400">Target: {activeRestaurant.phone}</p>
               </div>
@@ -437,12 +425,11 @@ export default function NearbyRestaurantsPage() {
                   </span>
                 </div>
 
-                {/* Gemini AI Message Bubble */}
+                {/* Message Bubble */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold">
-                    <span className="flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                      Gemini 1.5 Flash Generated Message
+                    <span className="flex items-center gap-1.5 font-bold text-slate-700">
+                      Outreach Message
                     </span>
                     <span className="text-[10px] text-slate-400">Channel: {outreachResult.channel}</span>
                   </div>

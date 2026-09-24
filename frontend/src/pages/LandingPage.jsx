@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, Truck, LayoutDashboard, ShieldCheck, ArrowRight, HeartHandshake, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Building2, Truck, LayoutDashboard, ShieldCheck, ArrowRight } from 'lucide-react';
 
 export default function LandingPage() {
   const portals = [
@@ -43,47 +43,48 @@ export default function LandingPage() {
       
       {/* Hero Banner */}
       <div className="rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 p-6 sm:p-10 shadow-sm relative overflow-hidden">
-        <div className="max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5 text-sky-500" />
-            <span>Donor Trust Layer + Zero-Delay Surplus Food Rescue</span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          
+          {/* Left Column: Heading and Actions */}
+          <div className="lg:col-span-7 space-y-4">
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+              Connecting surplus food to verified shelters before safe-use windows expire.
+            </h2>
+
+            <p className="text-sm sm:text-base text-slate-500 leading-relaxed max-w-2xl">
+              Surplus-to-Shelter coordinates donors, volunteer refrigerated drivers, and verified NGOs with automated feasibility matching and full FSSAI 2019 Good Samaritan legal liability immunity.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <Link
+                to="/ngo/dashboard"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#151c2e] hover:bg-slate-800 text-white font-semibold text-xs shadow-md transition-transform active:scale-95"
+              >
+                <span>Explore Rescue Schedule</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+
+              <Link
+                to="/admin/dashboard"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm transition"
+              >
+                <span>View Admin Audit Hub</span>
+              </Link>
+            </div>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-            Connecting surplus food to verified shelters before safe-use windows expire.
-          </h2>
-
-          <p className="text-sm sm:text-base text-slate-500 leading-relaxed max-w-2xl">
-            Surplus-to-Shelter coordinates donors, volunteer refrigerated drivers, and verified NGOs with automated feasibility matching and full FSSAI 2019 Good Samaritan legal liability immunity.
-          </p>
-
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            <Link
-              to="/ngo/dashboard"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#151c2e] hover:bg-slate-800 text-white font-semibold text-xs shadow-md transition-transform active:scale-95"
-            >
-              <span>Explore Rescue Schedule</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-
-            <Link
-              to="/admin/dashboard"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm transition"
-            >
-              <span>View Admin Audit Hub</span>
-            </Link>
+          {/* Right Column: Food Donation Image */}
+          <div className="lg:col-span-5 w-full">
+            <div className="relative rounded-2xl overflow-hidden shadow-md border border-slate-200/80 group">
+              <img
+                src="/food-donation-hero.jpg"
+                alt="Volunteers packaging nutritious food donations for shelters"
+                className="w-full h-64 sm:h-72 lg:h-80 object-cover transform transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/25 via-transparent to-transparent pointer-events-none" />
+            </div>
           </div>
-        </div>
 
-        {/* Floating Decorative Pill */}
-        <div className="hidden xl:block absolute right-8 bottom-8 p-4 rounded-2xl bg-white/90 border border-white shadow-lg max-w-xs space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            <span>100% Verified Partners</span>
-          </div>
-          <p className="text-[11px] text-slate-500 leading-relaxed">
-            Every registered shelter is cross-verified against NGO Darpan and FSSAI databases.
-          </p>
         </div>
       </div>
 

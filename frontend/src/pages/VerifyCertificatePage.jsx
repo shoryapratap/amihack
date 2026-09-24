@@ -37,13 +37,6 @@ export default function VerifyCertificatePage() {
               <h2 className="text-xl font-bold text-slate-900">Certificate of Food Rescue</h2>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <span className="px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4" />
-              Verified & Authentic
-            </span>
-          </div>
         </div>
 
         {/* Dual-Party Verification Banner */}

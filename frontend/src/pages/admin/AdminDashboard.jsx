@@ -50,12 +50,6 @@ export default function AdminDashboard() {
             <h2 className="text-lg font-bold text-slate-900">Live Trust Layer & Verification Audit</h2>
             <p className="text-xs text-slate-400">Verifying Darpan ID, FSSAI Section 24, and automated 80G certificate issuance</p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Automated Compliance Active
-            </span>
-          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -67,7 +61,6 @@ export default function AdminDashboard() {
                 <th className="pb-3 px-3">Surplus Cargo</th>
                 <th className="pb-3 px-3">FSSAI License</th>
                 <th className="pb-3 px-3">Audit Certificate</th>
-                <th className="pb-3 px-3">Rescue Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/80">
@@ -85,18 +78,6 @@ export default function AdminDashboard() {
                       {row.certId}
                       <ArrowUpRight className="w-3 h-3" />
                     </a>
-                  </td>
-                  <td className="py-3.5 px-3">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                      row.status === 'Completed' || row.status === 'Delivered'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : row.status === 'In Transit'
-                        ? 'bg-sky-50 text-sky-700 border border-sky-200'
-                        : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                      {row.status}
-                    </span>
                   </td>
                 </tr>
               ))}
