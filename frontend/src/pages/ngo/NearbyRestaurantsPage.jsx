@@ -23,37 +23,54 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import api from '../../services/api';
 
-// Custom Leaflet Icons using SVG DivIcons
-const createCustomIcon = (bgColor, iconChar) => {
-  return L.divIcon({
-    className: 'custom-map-pin',
-    html: `
-      <div style="
-        background: ${bgColor};
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 14px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-        border: 2px solid white;
-      ">
-        ${iconChar}
-      </div>
-    `,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-    popupAnchor: [0, -20],
-  });
-};
+// Standard Map Pin Icons (classic teardrop pins with drop shadow)
+const ngoIcon = L.divIcon({
+  className: 'standard-user-pin',
+  html: `
+    <div style="position: relative; width: 34px; height: 44px; display: flex; align-items: center; justify-content: center;">
+      <svg width="34" height="44" viewBox="0 0 34 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35));">
+        <path d="M17 0C7.611 0 0 7.611 0 17C0 29.5 17 44 17 44C17 44 34 29.5 34 17C34 7.611 26.389 0 17 0Z" fill="#0284c7"/>
+        <circle cx="17" cy="17" r="9" fill="white"/>
+        <circle cx="17" cy="17" r="5" fill="#0284c7"/>
+      </svg>
+    </div>
+  `,
+  iconSize: [34, 44],
+  iconAnchor: [17, 44],
+  popupAnchor: [0, -44],
+});
 
-const ngoIcon = createCustomIcon('#0ea5e9', '🌱');
-const restaurantIcon = createCustomIcon('#1e293b', '🍽️');
-const activeIcon = createCustomIcon('#10b981', '✓');
+const restaurantIcon = L.divIcon({
+  className: 'standard-restaurant-pin',
+  html: `
+    <div style="position: relative; width: 32px; height: 42px; display: flex; align-items: center; justify-content: center;">
+      <svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));">
+        <path d="M16 0C7.163 0 0 7.163 0 16C0 28 16 42 16 42C16 42 32 28 32 16C32 7.163 24.837 0 16 0Z" fill="#e11d48"/>
+        <circle cx="16" cy="16" r="8" fill="white"/>
+        <path d="M13 12V19M15 12V19M13 14H15M19 12V15C19 16 18 17 18 19" stroke="#e11d48" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </div>
+  `,
+  iconSize: [32, 42],
+  iconAnchor: [16, 42],
+  popupAnchor: [0, -42],
+});
+
+const activeIcon = L.divIcon({
+  className: 'standard-active-pin',
+  html: `
+    <div style="position: relative; width: 34px; height: 44px; display: flex; align-items: center; justify-content: center;">
+      <svg width="34" height="44" viewBox="0 0 34 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35));">
+        <path d="M17 0C7.611 0 0 7.611 0 17C0 29.5 17 44 17 44C17 44 34 29.5 34 17C34 7.611 26.389 0 17 0Z" fill="#10b981"/>
+        <circle cx="17" cy="17" r="8" fill="white"/>
+        <path d="M13 17L16 20L21 14" stroke="#10b981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  `,
+  iconSize: [34, 44],
+  iconAnchor: [17, 44],
+  popupAnchor: [0, -44],
+});
 
 import { useSearch } from '../../context/SearchContext';
 
@@ -389,33 +406,14 @@ export default function NearbyRestaurantsPage() {
                         <ExternalLink className="w-3 h-3 ml-1" />
                       </Link>
                     ) : (
-                      <>
-                        <button
-                          onClick={() => handleConnect(item, 'whatsapp')}
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#151c2e] hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition active:scale-95"
-                          title="Send WhatsApp Outreach"
-                        >
-                          <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>WhatsApp</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleConnect(item, 'call')}
-                          className="inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm transition active:scale-95"
-                          title="Initiate Voice Call"
-                        >
-                          <PhoneCall className="w-3.5 h-3.5 text-sky-600" />
-                          <span>Call</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleConnect(item, 'both')}
-                          className="inline-flex items-center justify-center py-2 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 font-semibold text-xs border border-sky-200 shadow-sm transition"
-                          title="Send Both Call & WhatsApp"
-                        >
-                          <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-                        </button>
-                      </>
+                      <button
+                        onClick={() => handleConnect(item, 'whatsapp')}
+                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl bg-[#151c2e] hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition active:scale-95"
+                        title="Send WhatsApp Outreach"
+                      >
+                        <MessageSquare className="w-4 h-4 text-emerald-400" />
+                        <span>Send WhatsApp Outreach</span>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -508,19 +506,14 @@ export default function NearbyRestaurantsPage() {
                 )}
 
                 {/* Delivery Mode details */}
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-slate-400 block text-[9px] uppercase font-bold">WhatsApp Status</span>
-                    <span className="font-semibold text-slate-700">
-                      {outreachResult.whatsapp_status?.status || 'Sent'}
-                    </span>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-slate-400 block text-[9px] uppercase font-bold">Call Status</span>
-                    <span className="font-semibold text-slate-700">
-                      {outreachResult.call_status?.status || 'Call Queued'}
-                    </span>
-                  </div>
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-semibold flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5 text-emerald-500" />
+                    WhatsApp Delivery Status
+                  </span>
+                  <span className="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 text-[11px]">
+                    {outreachResult.whatsapp_status?.status || 'Sent via WhatsApp'}
+                  </span>
                 </div>
 
                 {/* Simulate Manager Reply Section */}
