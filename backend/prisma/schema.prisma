@@ -1,0 +1,267 @@
+// Surplus-to-Shelter Database Schema
+// Normalized schema supporting Donor Trust Layer, Matching Engine, and Role-based Dashboards
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider             = "prisma-client-py"
+  recursive_type_depth = 5
+}
+
+enum Role {
+  ADMIN
+  NGO
+  DRIVER
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DietaryType {
+  VEG
+  NON_VEG
+  BOTH
+}
+
+enum FoodType {
+  VEG_COOKED
+  NON_VEG_COOKED
+  PACKAGED_GROCERY
+  RAW_PRODUCE
+  BAKERY
+  DAIRY
+}
+
+enum DonationStatus {
+  PENDING
+  MATCHED
+  ACCEPTED
+  PICKED_UP
+  DELIVERED
+  EXPIRED
+  CANCELLED
+}
+
+enum MatchStatus {
+  PROPOSED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum DriverAssignmentStatus {
+  ASSIGNED
+  EN_ROUTE_PICKUP
+  PICKED_UP
+  EN_ROUTE_DROPOFF
+  DELIVERED
+  CANCELLED
+}
+
+enum SourceChannel {
+  WHATSAPP
+  WEB_PORTAL
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?  @unique
+  role         Role     @default(NGO)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  recipientProfile Recipient?
+  driverProfile    Driver?
+  auditLogs        AuditLog[]
+}
+
+model Donor {
+  id               String   @id @default(uuid())
+  name             String
+  phone            String   @unique
+  organizationType String   @default("RESTAURANT") // RESTAURANT, HOTEL, CATERER, CORPORATE, INDIVIDUAL
+  address          String?
+  latitude         Float?
+  longitude        Float?
+  isBlocked        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  donations    Donation[]
+  whatsAppLogs WhatsAppLog[]
+}
+
+model Recipient {
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationName   String
+  registrationNumber String             @unique
+  fssaiNumber        String?
+  address            String
+  latitude           Float
+  longitude          Float
+  capacityMeals      Int                @default(100)
+  dietaryPreference  DietaryType        @default(BOTH)
+  contactPerson      String
+  phone              String
+  verificationStatus VerificationStatus @default(PENDING)
+  verifiedAt         DateTime?
+  verifiedByUserId   String?
+  rejectionReason    String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  documents    VerificationDocument[]
+  matches      Match[]
+  certificates Certificate[]
+}
+
+model VerificationDocument {
+  id           String    @id @default(uuid())
+  recipientId  String
+  recipient    Recipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  documentType String    @default("FSSAI_REGISTRATION") // FSSAI_REGISTRATION, 80G_CERTIFICATE, NGO_DARPAN, ID_PROOF
+  fileUrl      String
+  fileName     String
+  fileSize     Int?
+  uploadedAt   DateTime  @default(now())
+}
+
+model Driver {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName      String
+  phone         String   @unique
+  vehicleType   String   @default("TWO_WHEELER") // TWO_WHEELER, THREE_WHEELER, FOUR_WHEELER, REFRIGERATED_VAN
+  vehicleNumber String?
+  isAvailable   Boolean  @default(true)
+  currentLat    Float?
+  currentLng    Float?
+  isOtpVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  assignments DriverAssignment[]
+}
+
+model Donation {
+  id                  String         @id @default(uuid())
+  donorId             String
+  donor               Donor          @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  foodTitle           String
+  foodType            FoodType       @default(VEG_COOKED)
+  quantityKg          Float
+  estimatedMeals      Int
+  preparedAt          DateTime       @default(now())
+  safeUntil           DateTime
+  pickupAddress       String
+  pickupLat           Float
+  pickupLng           Float
+  notes               String?
+  status              DonationStatus @default(PENDING)
+  sourceChannel       SourceChannel  @default(WHATSAPP)
+  rawMessageText      String?
+  submissionTimestamp DateTime       @default(now())
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  matches           Match[]
+  driverAssignments DriverAssignment[]
+  certificate       Certificate?
+}
+
+model Match {
+  id                 String      @id @default(uuid())
+  donationId         String
+  donation           Donation    @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  recipientId        String
+  recipient          Recipient   @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  score              Float
+  distanceKm         Float
+  capacityFitScore   Float
+  urgencyScore       Float
+  dietaryScore       Float
+  status             MatchStatus @default(PROPOSED)
+  proposedAt         DateTime    @default(now())
+  respondedAt        DateTime?
+  responseNotes      String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  driverAssignments DriverAssignment[]
+}
+
+model DriverAssignment {
+  id           String                 @id @default(uuid())
+  donationId   String
+  donation     Donation               @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  matchId      String?
+  match        Match?                 @relation(fields: [matchId], references: [id], onDelete: SetNull)
+  driverId     String
+  driver       Driver                 @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  status       DriverAssignmentStatus @default(ASSIGNED)
+  assignedAt   DateTime               @default(now())
+  pickedUpAt   DateTime?
+  deliveredAt  DateTime?
+  driverNotes  String?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+}
+
+model Certificate {
+  id                       String    @id @default(uuid())
+  donationId               String    @unique
+  donation                 Donation  @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  recipientId              String
+  recipient                Recipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  donorSubmissionTimestamp DateTime
+  ngoAcceptanceTimestamp   DateTime
+  ngoAuthorizedUserId      String
+  fssaiClauseCited         String    @default("FSSAI (Recovery and Distribution of Surplus Food) Regulations, 2019 - Clause 3(1) Good Samaritan Protection")
+  qrCodeData               String
+  verificationSlug         String    @unique
+  pdfPath                  String?
+  imagePath                String?
+  issuedAt                 DateTime  @default(now())
+  isValid                  Boolean   @default(true)
+}
+
+model WhatsAppLog {
+  id            String           @id @default(uuid())
+  donorId       String?
+  donor         Donor?           @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  fromPhone     String
+  toPhone       String
+  direction     MessageDirection @default(INBOUND)
+  messageBody   String
+  extractedData String? // JSON string of LLM extraction
+  status        String           @default("PROCESSED")
+  createdAt     DateTime         @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action      String
+  entityType  String
+  entityId    String
+  detailsJson String?
+  timestamp   DateTime @default(now())
+}
