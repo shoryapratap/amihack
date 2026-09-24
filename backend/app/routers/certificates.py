@@ -86,7 +86,7 @@ def download_certificate_pdf(cert_id: str):
 
     pdf_bytes = generate_certificate_pdf(cert)
     headers = {
-        "Content-Disposition": f'inline; filename="FSSAI_Certificate_{cert_id}.pdf"',
+        "Content-Disposition": f'inline; filename="FSSAI_Donation_Protection_Certificate_{cert_id.replace("-", "_")}.pdf"',
         "Cache-Control": "public, max-age=3600"
     }
     return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)

@@ -1,5 +1,6 @@
 import io
 import os
+import re
 import qrcode
 import httpx
 from datetime import datetime
@@ -384,21 +385,48 @@ def generate_certificate_pdf(cert: dict) -> bytes:
     return buffer.getvalue()
 
 
-async def upload_pdf_for_whatsapp(pdf_bytes: bytes, filename: str = "FSSAI_Certificate.pdf") -> str:
+async def upload_pdf_for_whatsapp(pdf_bytes: bytes, filename: str = "FSSAI_Donation_Protection_Certificate.pdf") -> str:
     """
-    Uploads the PDF to public storage so Twilio WhatsApp can fetch and attach it directly.
+    Uploads the PDF to public storage with an authoritative, descriptive filename,
+    ensuring WhatsApp displays the document name cleanly (e.g., FSSAI_Donation_Protection_Certificate.pdf)
+    instead of random generated slugs.
     """
+    clean_name = filename if filename.endswith(".pdf") else f"{filename}.pdf"
+    clean_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', clean_name)
+
+    # Strategy 1: tmpfiles.org provides direct download URLs preserving the descriptive filename
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            upload_res = await client.post(
+                "https://tmpfiles.org/api/v1/upload",
+                files={"file": (clean_name, pdf_bytes, "application/pdf")}
+            )
+            if upload_res.status_code == 200:
+                data = upload_res.json()
+                page_url = data.get("data", {}).get("url")
+                if page_url:
+                    page_res = await client.get(page_url)
+                    match = re.search(r'href="([^"]+/dl/[^"]+)"', page_res.text)
+                    if match:
+                        dl_url = match.group(1)
+                        print(f"[PDF Service] Uploaded to tmpfiles with clean filename: {dl_url}")
+                        return dl_url
+    except Exception as e:
+        print(f"[PDF Service] tmpfiles.org upload failed: {e}")
+
+    # Strategy 2: Fallback to catbox.moe
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             res = await client.post(
                 "https://catbox.moe/user/api.php",
                 data={"reqtype": "fileupload"},
-                files={"fileToUpload": (filename, pdf_bytes, "application/pdf")}
+                files={"fileToUpload": (clean_name, pdf_bytes, "application/pdf")}
             )
             if res.status_code == 200 and res.text.startswith("https://"):
+                print(f"[PDF Service] Fallback to catbox: {res.text.strip()}")
                 return res.text.strip()
     except Exception as e:
-        print(f"Error uploading PDF to public host: {e}")
+        print(f"[PDF Service] Catbox fallback failed: {e}")
 
     # Fallback to local server URL
-    return f"http://localhost:8000/api/v1/certificates/download/{filename}"
+    return f"http://localhost:8000/api/v1/certificates/download/{clean_name}"
