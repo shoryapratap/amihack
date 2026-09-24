@@ -37,12 +37,12 @@ class DonationStatusEnum(str, Enum):
 
 # Auth Schemas
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 class UserSignup(BaseModel):
     name: str
-    email: EmailStr
+    email: str
     password: str
     phone: Optional[str] = None
     role: RoleEnum = RoleEnum.NGO

@@ -1,6 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.db.postgres import init_postgres
+from app.database import init_db
+
+# Initialize database connections and seed defaults
+init_postgres()
+init_db()
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -30,10 +36,9 @@ def read_root():
 def health_check():
     return {"status": "healthy"}
 
-from app.database import init_db
-init_db()
 
-from app.routers import restaurants, certificates, ngos, ngo_verification
+from app.routers import restaurants, certificates, ngos, ngo_verification, auth
+app.include_router(auth.router, prefix="/api/v1")
 app.include_router(restaurants.router, prefix="/api/v1")
 app.include_router(certificates.router, prefix="/api/v1")
 app.include_router(ngos.router, prefix="/api/v1")

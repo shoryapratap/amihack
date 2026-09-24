@@ -151,7 +151,9 @@ class ConnectRequest(BaseModel):
 class ReplySimulateRequest(BaseModel):
     reply_text: str = "Namaste! Yes, we have about 45 meal portions of paneer curry & roti packed in clean trays. Can pick up before 3 PM."
 
-@router.get("/nearby")
+@router.get("", summary="List nearby restaurants")
+@router.get("/", summary="List nearby restaurants")
+@router.get("/nearby", summary="List nearby restaurants")
 def get_nearby_restaurants():
     """
     Returns list of nearby restaurants with coordinates, phone, and surplus capacity.
