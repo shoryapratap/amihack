@@ -145,8 +145,23 @@ class ApiClient {
     return this.request('/certificates');
   }
 
+  getCertificate(id) {
+    return this.request(`/certificates/verify/${id}`);
+  }
+
   verifyCertificate(id) {
     return this.request(`/certificates/verify/${id}`);
+  }
+
+  getLegalClause() {
+    return this.request('/certificates/legal-clause');
+  }
+
+  acceptAndCertifyDonation(restaurantId, data = {}) {
+    return this.request(`/restaurants/${restaurantId}/accept-and-certify`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   }
 
   // Admin KPIs & Live Map

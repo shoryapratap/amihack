@@ -30,6 +30,13 @@ def read_root():
 def health_check():
     return {"status": "healthy"}
 
-from app.routers import restaurants
+from app.database import init_db
+init_db()
+
+from app.routers import restaurants, certificates, ngos, ngo_verification
 app.include_router(restaurants.router, prefix="/api/v1")
+app.include_router(certificates.router, prefix="/api/v1")
+app.include_router(ngos.router, prefix="/api/v1")
+app.include_router(ngo_verification.router, prefix="/api/v1")
+
 
