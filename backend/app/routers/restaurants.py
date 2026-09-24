@@ -17,7 +17,7 @@ from app.services.twilio_service import (
 router = APIRouter(prefix="/restaurants", tags=["Restaurants & AI Outreach"])
 
 # In-memory store of nearby restaurants (using user's phone number: 9829407512)
-DEFAULT_PHONE = getattr(settings, "DEFAULT_RESTAURANT_NUMBER", "+919521273011")
+DEFAULT_PHONE = getattr(settings, "DEFAULT_RESTAURANT_NUMBER", "+919829407512")
 
 RESTAURANTS_DB = [
     {
@@ -26,7 +26,7 @@ RESTAURANTS_DB = [
         "lat": 26.9135,
         "lng": 75.7890,
         "address": "Pilot Testing Ground, Civil Lines, Jaipur",
-        "phone": "+919521273011",
+        "phone": "+919829407512",
         "contact_person": "You (Owner / Test Phone)",
         "distance": "0.4 km",
         "cuisine": "North Indian Kitchen & Bakery",
@@ -44,7 +44,7 @@ RESTAURANTS_DB = [
         "lat": 26.9124,
         "lng": 75.7873,
         "address": "Plot 42, Civil Lines, Jaipur",
-        "phone": "+919521273011",
+        "phone": "+919829407512",
         "contact_person": "Vikram Singh (Banquet Manager)",
         "distance": "1.2 km",
         "cuisine": "North Indian & Buffet",
