@@ -320,7 +320,7 @@ async def accept_and_certify_donation(restaurant_id: str, payload: AcceptAndCert
     # Generate PDF document and get direct public URL for WhatsApp media delivery
     from app.services.pdf_service import generate_certificate_pdf, upload_pdf_for_whatsapp
     pdf_bytes = generate_certificate_pdf(cert)
-    clean_pdf_filename = f"FSSAI_Donation_Protection_Certificate_{cert_id.replace('-', '_')}.pdf"
+    clean_pdf_filename = "fssaicertificate.pdf"
     pdf_media_url = await upload_pdf_for_whatsapp(pdf_bytes, clean_pdf_filename)
     pdf_download_url = f"http://localhost:8000/api/v1/certificates/{cert_id}/download"
 

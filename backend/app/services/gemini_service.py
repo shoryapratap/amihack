@@ -43,7 +43,7 @@ async def generate_restaurant_outreach_message(
             async with httpx.AsyncClient(timeout=10.0) as client:
                 res = await client.post(url, json=payload)
                 if res.status_code == 200:
-                    data = res.json()
+                    data = res.json() 
                     candidates = data.get("candidates", [])
                     if candidates:
                         parts = candidates[0].get("content", {}).get("parts", [])

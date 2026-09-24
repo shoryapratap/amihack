@@ -385,10 +385,10 @@ def generate_certificate_pdf(cert: dict) -> bytes:
     return buffer.getvalue()
 
 
-async def upload_pdf_for_whatsapp(pdf_bytes: bytes, filename: str = "FSSAI_Donation_Protection_Certificate.pdf") -> str:
+async def upload_pdf_for_whatsapp(pdf_bytes: bytes, filename: str = "fssaicertificate.pdf") -> str:
     """
     Uploads the PDF to public storage with an authoritative, descriptive filename,
-    ensuring WhatsApp displays the document name cleanly (e.g., FSSAI_Donation_Protection_Certificate.pdf)
+    ensuring WhatsApp displays the document name cleanly (e.g., fssaicertificate.pdf)
     instead of random generated slugs.
     """
     clean_name = filename if filename.endswith(".pdf") else f"{filename}.pdf"
