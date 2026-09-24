@@ -30,3 +30,7 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+from app.routers import restaurants
+app.include_router(restaurants.router, prefix="/api/v1")
+

@@ -22,9 +22,11 @@ class Settings(BaseSettings):
 
     TWILIO_ACCOUNT_SID: Optional[str] = ""
     TWILIO_AUTH_TOKEN: Optional[str] = ""
+    TWILIO_PHONE_NUMBER: str = "+14155238886"
     TWILIO_WHATSAPP_NUMBER: str = "+14155238886"
+    DEFAULT_RESTAURANT_NUMBER: str = "+919829407512"
 
-    WHATSAPP_RATE_LIMIT_PER_MINUTE: int = 5
+    WHATSAPP_RATE_LIMIT_PER_MINUTE: int = 10
 
     class Config:
         env_file = ".env"

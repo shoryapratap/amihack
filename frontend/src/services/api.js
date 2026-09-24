@@ -157,6 +157,25 @@ class ApiClient {
   getLiveMapData() {
     return this.request('/admin/live-map');
   }
+
+  // Nearby Restaurants & AI Outreach
+  getNearbyRestaurants() {
+    return this.request('/restaurants/nearby');
+  }
+
+  connectRestaurant(id, data = {}) {
+    return this.request(`/restaurants/${id}/connect`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  simulateRestaurantReply(id, data = {}) {
+    return this.request(`/restaurants/${id}/simulate-reply`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const api = new ApiClient();

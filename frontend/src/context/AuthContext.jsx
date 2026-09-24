@@ -1,47 +1,68 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import React, { createContext, useContext, useState } from 'react';
+
+const ROLES = {
+  ADMIN: {
+    id: 'user-admin-1',
+    name: 'Admin Coordinator',
+    email: 'admin@surplus.org',
+    role: 'ADMIN',
+  },
+  NGO: {
+    id: 'user-ngo-1',
+    name: 'Green Future Foundation',
+    email: 'contact@greenfuture.org',
+    role: 'NGO',
+    darpanId: 'DL/2026/000001',
+    fssaiNumber: '10000000000001',
+  },
+  DRIVER: {
+    id: 'user-driver-1',
+    name: 'Rajesh Kumar (Volunteer Driver)',
+    email: 'rajesh.driver@surplus.org',
+    role: 'DRIVER',
+    vehicle: 'Refrigerated Van (MH-12-AB-1234)',
+  },
+};
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Default to ADMIN so all views and permissions are available immediately without login
+  const [user, setUser] = useState(ROLES.ADMIN);
+  const [loading] = useState(false);
 
-  useEffect(() => {
-    const initAuth = async () => {
-      const token = api.getToken();
-      if (token) {
-        try {
-          const userData = await api.getMe();
-          setUser(userData);
-        } catch (err) {
-          console.error('Failed to load user session', err);
-          api.setToken(null);
-          setUser(null);
-        }
-      }
-      setLoading(false);
-    };
-    initAuth();
-  }, []);
+  const switchRole = (roleKey) => {
+    if (ROLES[roleKey]) {
+      setUser(ROLES[roleKey]);
+    }
+  };
 
-  const login = async (email, password) => {
-    const data = await api.login({ email, password });
-    api.setToken(data.accessToken);
-    setUser(data.user);
-    return data;
+  const login = async () => {
+    return { user };
   };
 
   const logout = () => {
-    api.setToken(null);
-    setUser(null);
+    // Keep user active or switch to demo NGO
+    setUser(ROLES.NGO);
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout, loading, isAuthenticated: !!user }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        switchRole,
+        availableRoles: ROLES,
+        login,
+        logout,
+        loading,
+        isAuthenticated: true,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => useContext(AuthContext);
+
