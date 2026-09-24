@@ -68,6 +68,29 @@ def verify_certificate(cert_id: str):
         "certificate": cert
     }
 
+@router.get("/{cert_id}/download")
+@router.get("/{cert_id}/pdf")
+def download_certificate_pdf(cert_id: str):
+    """
+    Dynamically generates and streams the official FSSAI 2019 Donation Protection Certificate as a PDF.
+    """
+    from fastapi.responses import Response
+    from app.services.pdf_service import generate_certificate_pdf
+
+    cert = get_certificate_by_id(cert_id)
+    if not cert:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Certificate '{cert_id}' not found in the registry."
+        )
+
+    pdf_bytes = generate_certificate_pdf(cert)
+    headers = {
+        "Content-Disposition": f'inline; filename="FSSAI_Certificate_{cert_id}.pdf"',
+        "Cache-Control": "public, max-age=3600"
+    }
+    return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)
+
 @router.post("/issue")
 def issue_certificate_endpoint(payload: IssueCertificateRequest):
     """

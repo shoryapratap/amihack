@@ -4,9 +4,10 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-async def send_twilio_whatsapp(to_number: str, message: str) -> dict:
+async def send_twilio_whatsapp(to_number: str, message: str, media_url: str = None) -> dict:
     """
     Sends a WhatsApp message via Twilio REST API / Python SDK.
+    Supports optional media_url for attaching PDFs / documents directly into WhatsApp.
     Handles international formatting (+91 for India if missing).
     """
     clean_number = to_number.strip().replace(" ", "").replace("-", "")
@@ -27,42 +28,64 @@ async def send_twilio_whatsapp(to_number: str, message: str) -> dict:
             from twilio.rest import Client
             client = Client(sid, token)
 
-            # 1. Try sending the full personalized Gemini AI message
+            # 1. Try sending with media attachment if provided
             try:
-                msg = client.messages.create(
-                    from_=from_whatsapp,
-                    body=message,
-                    to=to_whatsapp
-                )
-                logger.info(f"Twilio WhatsApp sent successfully (body). SID: {msg.sid}")
+                create_params = {
+                    "from_": from_whatsapp,
+                    "body": message,
+                    "to": to_whatsapp
+                }
+                if media_url and media_url.startswith("http"):
+                    create_params["media_url"] = [media_url]
+
+                msg = client.messages.create(**create_params)
+                logger.info(f"Twilio WhatsApp sent successfully (with media={bool(media_url)}). SID: {msg.sid}")
                 return {
                     "success": True,
                     "mode": "live_twilio",
                     "sid": msg.sid,
                     "status": msg.status,
                     "to": clean_number,
-                    "message": message
+                    "message": message,
+                    "media_attached": bool(media_url),
+                    "media_url": media_url
                 }
             except Exception as e_body:
-                logger.warning(f"Free-form send error, falling back to Content Template: {e_body}")
-                # 2. If Twilio requires an approved Content Template:
-                content_sid = getattr(settings, "TWILIO_CONTENT_SID", "HXb5b62575e6e4ff6129ad7c8efe1f983e")
-                msg = client.messages.create(
-                    from_=from_whatsapp,
-                    content_sid=content_sid,
-                    content_variables=json.dumps({"1": "Today", "2": "Surplus Food Rescue"}),
-                    to=to_whatsapp
-                )
-                logger.info(f"Twilio WhatsApp sent via Content Template. SID: {msg.sid}")
-                return {
-                    "success": True,
-                    "mode": "live_twilio_template",
-                    "sid": msg.sid,
-                    "status": msg.status,
-                    "to": clean_number,
-                    "message": message,
-                    "template_used": True
-                }
+                logger.warning(f"Primary message send failed: {e_body}. Retrying without media...")
+                try:
+                    # Fallback to text-only if media fetch had an issue
+                    msg = client.messages.create(
+                        from_=from_whatsapp,
+                        body=message,
+                        to=to_whatsapp
+                    )
+                    return {
+                        "success": True,
+                        "mode": "live_twilio_text_fallback",
+                        "sid": msg.sid,
+                        "status": msg.status,
+                        "to": clean_number,
+                        "message": message
+                    }
+                except Exception as e_text:
+                    # 2. If Twilio requires an approved Content Template:
+                    content_sid = getattr(settings, "TWILIO_CONTENT_SID", "HXb5b62575e6e4ff6129ad7c8efe1f983e")
+                    msg = client.messages.create(
+                        from_=from_whatsapp,
+                        content_sid=content_sid,
+                        content_variables=json.dumps({"1": "Today", "2": "Surplus Food Rescue"}),
+                        to=to_whatsapp
+                    )
+                    logger.info(f"Twilio WhatsApp sent via Content Template. SID: {msg.sid}")
+                    return {
+                        "success": True,
+                        "mode": "live_twilio_template",
+                        "sid": msg.sid,
+                        "status": msg.status,
+                        "to": clean_number,
+                        "message": message,
+                        "template_used": True
+                    }
         except Exception as e:
             logger.error(f"Twilio WhatsApp dispatch error: {e}")
             return {

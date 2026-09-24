@@ -313,24 +313,35 @@ async def accept_and_certify_donation(restaurant_id: str, payload: AcceptAndCert
         ngo_name=payload.ngo_name
     )
 
-    # Automatically notify donor via WhatsApp with certificate link
-    target_phone = restaurant.get("phone", settings.DEFAULT_RESTAURANT_NUMBER)
     cert_id = cert["id"]
     verification_url = cert["security"]["verificationUrl"]
+    target_phone = restaurant.get("phone", settings.DEFAULT_RESTAURANT_NUMBER)
 
+    # Generate PDF document and get direct public URL for WhatsApp media delivery
+    from app.services.pdf_service import generate_certificate_pdf, upload_pdf_for_whatsapp
+    pdf_bytes = generate_certificate_pdf(cert)
+    pdf_media_url = await upload_pdf_for_whatsapp(pdf_bytes, f"FSSAI_Certificate_{cert_id}.pdf")
+    pdf_download_url = f"http://localhost:8000/api/v1/certificates/{cert_id}/download"
+
+    cert["pdfUrl"] = pdf_media_url
+    cert["pdfDownloadUrl"] = pdf_download_url
+
+    # Automatically notify donor via WhatsApp with attached PDF certificate
     whatsapp_msg = (
         f"Namaste! 🙏 Green Future Foundation has verified and officially accepted your surplus food donation.\n\n"
-        f"📜 Official FSSAI 2019 Donation Protection Certificate Generated!\n\n"
+        f"📜 Official FSSAI 2019 Donation Protection Certificate Generated & Attached!\n\n"
         f"🛡️ Legal Protection: Under FSSAI (Recovery & Distribution of Surplus Food) Regulations 2019, "
         f"your good-faith donation is legally protected from civil and criminal liability.\n\n"
         f"• Certificate ID: {cert_id}\n"
-        f"• Verified Link: {verification_url}\n\n"
+        f"• Official PDF: Attached directly to this message.\n"
+        f"• Live Verification Link: {verification_url}\n\n"
         f"Thank you for helping us feed families in need today!"
     )
 
     whatsapp_result = await send_twilio_whatsapp(
         to_number=target_phone,
-        message=whatsapp_msg
+        message=whatsapp_msg,
+        media_url=pdf_media_url
     )
 
     # Update restaurant state
@@ -344,10 +355,12 @@ async def accept_and_certify_donation(restaurant_id: str, payload: AcceptAndCert
 
     return {
         "success": True,
-        "message": f"Liability Protection Certificate generated and dispatched to {restaurant['name']}",
+        "message": f"Liability Protection Certificate generated and PDF dispatched to {restaurant['name']}",
         "certificate": cert,
+        "pdf_media_url": pdf_media_url,
         "whatsapp_notification": whatsapp_result
     }
+
 
 @router.post("/webhook/twilio/whatsapp")
 async def twilio_whatsapp_webhook(

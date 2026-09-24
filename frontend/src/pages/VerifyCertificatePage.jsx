@@ -151,12 +151,21 @@ export default function VerifyCertificatePage() {
             <Share2 className="w-3.5 h-3.5" />
             <span>Share WhatsApp</span>
           </button>
+          <a
+            href={`http://localhost:8000/api/v1/certificates/${cert.id}/download`}
+            target="_blank"
+            rel="noreferrer"
+            className="px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download Signed PDF</span>
+          </a>
           <button
             onClick={handlePrint}
             className="px-4 py-1.5 rounded-full bg-[#151c2e] hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>Print / PDF</span>
+            <span>Print View</span>
           </button>
         </div>
       </div>
