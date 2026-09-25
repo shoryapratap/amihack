@@ -12,6 +12,8 @@ import {
   MapPin
 } from 'lucide-react';
 
+import { Link } from 'react-router-dom';
+
 export default function AdminDrivers() {
   const { searchQuery: globalQuery } = useSearch();
   const [localQuery, setLocalQuery] = useState('');
@@ -19,6 +21,14 @@ export default function AdminDrivers() {
   const [loading, setLoading] = useState(true);
 
   const activeQuery = localQuery || globalQuery || '';
+
+  const adminNav = [
+    { label: 'Overview', to: '/admin/dashboard', active: false },
+    { label: 'Donations Ledger', to: '/admin/donations', active: false },
+    { label: 'Verified Shelters', to: '/admin/recipients', active: false },
+    { label: 'Driver Fleet', to: '/admin/drivers', active: true },
+    { label: 'Protection Certificates', to: '/admin/certificates', active: false },
+  ];
 
   const fetchDrivers = async () => {
     try {
@@ -52,6 +62,23 @@ export default function AdminDrivers() {
   return (
     <div className="space-y-6">
       
+      {/* Admin Module Sub-Nav */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {adminNav.map((tab) => (
+          <Link
+            key={tab.to}
+            to={tab.to}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap ${
+              tab.active
+                ? 'bg-[#151c2e] text-white shadow-sm'
+                : 'bg-white/80 hover:bg-white text-slate-600 border border-white shadow-sm hover:text-slate-900'
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </div>
+
       {/* Header Banner */}
       <div className="rounded-3xl bg-white/90 backdrop-blur-xl border border-white/80 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

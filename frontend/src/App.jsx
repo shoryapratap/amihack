@@ -29,11 +29,13 @@ import AdminRecipients from './pages/admin/AdminRecipients';
 import AdminDrivers from './pages/admin/AdminDrivers';
 import AdminCertificates from './pages/admin/AdminCertificates';
 
-// Initial Entry Gate: Presents Login/Signup as the very first screen
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Initial Entry Gate: Cleanly navigates to /login if unauthenticated, or to appropriate role dashboard
 function InitialEntryGate() {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return <Navigate to="/login" replace />;
   }
   if (user?.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
   if (user?.role === 'DRIVER') return <Navigate to="/driver/dashboard" replace />;
@@ -45,8 +47,9 @@ export default function App() {
     <AuthProvider>
       <SearchProvider>
         <Router>
-          <AppShell>
-            <Routes>
+          <ErrorBoundary>
+            <AppShell>
+              <Routes>
               {/* Very First Screen: Login / Signup Gate */}
               <Route path="/" element={<InitialEntryGate />} />
               <Route path="/overview" element={<LandingPage />} />
@@ -84,7 +87,8 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppShell>
-      </Router>
+      </ErrorBoundary>
+    </Router>
     </SearchProvider>
   </AuthProvider>
   );

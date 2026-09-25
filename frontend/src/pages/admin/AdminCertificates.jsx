@@ -13,6 +13,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 
+import { Link } from 'react-router-dom';
+
 export default function AdminCertificates() {
   const { searchQuery: globalQuery } = useSearch();
   const [localQuery, setLocalQuery] = useState('');
@@ -21,12 +23,35 @@ export default function AdminCertificates() {
 
   const activeQuery = localQuery || globalQuery || '';
 
+  const adminNav = [
+    { label: 'Overview', to: '/admin/dashboard', active: false },
+    { label: 'Donations Ledger', to: '/admin/donations', active: false },
+    { label: 'Verified Shelters', to: '/admin/recipients', active: false },
+    { label: 'Driver Fleet', to: '/admin/drivers', active: false },
+    { label: 'Protection Certificates', to: '/admin/certificates', active: true },
+  ];
+
   const fetchCertificates = async () => {
     try {
       setLoading(true);
       const res = await api.getCertificates();
       if (res && res.certificates) {
-        setCertificates(res.certificates);
+        const normalized = res.certificates.map((c) => {
+          const donorName = typeof c.donor === 'object' ? (c.donor?.name || 'Live Test Restaurant') : String(c.donor || 'Live Test Restaurant');
+          const recipientName = typeof c.recipient === 'object' ? (c.recipient?.name || 'Green Future Foundation') : String(c.recipient || 'Green Future Foundation');
+          const cargoText = typeof c.donation === 'object' ? (c.donation?.description || '40 Meals') : String(c.cargo || '40 Meals');
+          const clauseText = typeof c.legalProtection === 'object' ? (c.legalProtection?.clauseCited || 'FSSAI 2019') : String(c.clause || 'FSSAI 2019 Section 24');
+          const certId = String(c.id || c.certId || 'CERT-2026-001');
+          return {
+            id: certId,
+            certId: certId,
+            donor: donorName,
+            recipient: recipientName,
+            cargo: cargoText,
+            clause: clauseText,
+          };
+        });
+        setCertificates(normalized);
       }
     } catch (err) {
       console.error('Failed to fetch certificates from database:', err);
@@ -41,19 +66,41 @@ export default function AdminCertificates() {
 
   const filtered = certificates.filter((c) => {
     const q = activeQuery.toLowerCase().trim();
+    const certId = String(c.certId || '').toLowerCase();
+    const donor = String(c.donor || '').toLowerCase();
+    const recipient = String(c.recipient || '').toLowerCase();
+    const clause = String(c.clause || '').toLowerCase();
+    const cargo = String(c.cargo || '').toLowerCase();
     return (
       !q ||
-      c.certId?.toLowerCase().includes(q) ||
-      c.donor?.toLowerCase().includes(q) ||
-      c.recipient?.toLowerCase().includes(q) ||
-      c.clause?.toLowerCase().includes(q) ||
-      c.cargo?.toLowerCase().includes(q)
+      certId.includes(q) ||
+      donor.includes(q) ||
+      recipient.includes(q) ||
+      clause.includes(q) ||
+      cargo.includes(q)
     );
   });
 
   return (
     <div className="space-y-6">
       
+      {/* Admin Module Sub-Nav */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {adminNav.map((tab) => (
+          <Link
+            key={tab.to}
+            to={tab.to}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap ${
+              tab.active
+                ? 'bg-[#151c2e] text-white shadow-sm'
+                : 'bg-white/80 hover:bg-white text-slate-600 border border-white shadow-sm hover:text-slate-900'
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </div>
+
       {/* Header Banner */}
       <div className="rounded-3xl bg-white/90 backdrop-blur-xl border border-white/80 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -130,13 +177,13 @@ export default function AdminCertificates() {
                     <span className="font-semibold text-emerald-700">FSSAI 2019</span>: {c.clause}
                   </td>
                   <td className="py-3.5 px-3 text-right">
-                    <a
-                      href={`/verify/${c.certId}`}
+                    <Link
+                      to={`/verify/${c.certId}`}
                       className="px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold text-[11px] border border-emerald-200 transition inline-flex items-center gap-1"
                     >
                       <span>Verify</span>
                       <ArrowUpRight className="w-3 h-3" />
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               ))}

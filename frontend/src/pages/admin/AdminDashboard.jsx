@@ -3,13 +3,15 @@ import { useSearch } from '../../context/SearchContext';
 import api from '../../services/api';
 import { ShieldCheck, TrendingUp, Users, HeartHandshake, CheckCircle2, AlertCircle, FileText, ArrowUpRight, RefreshCw } from 'lucide-react';
 
+import { Link } from 'react-router-dom';
+
 export default function AdminDashboard() {
   const { searchQuery } = useSearch();
   const [kpis, setKpis] = useState([
-    { label: 'Total Meals Rescued', value: '14,820', change: '+18.4% this week', icon: HeartHandshake, color: 'text-sky-600', bg: 'bg-sky-50' },
-    { label: 'Active Verified Shelters', value: '42', change: '100% Darpan & FSSAI', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { label: 'Average Feasibility Match', value: '96.5%', change: '< 35 mins transit', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Tax & Audit Certificates', value: '318', change: '80G & FSSAI Compliant', icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Total Meals Rescued', value: '14,820', change: '+18.4% this week', icon: HeartHandshake, color: 'text-sky-600', bg: 'bg-sky-50', link: '/admin/donations' },
+    { label: 'Active Verified Shelters', value: '42', change: '100% Darpan & FSSAI', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50', link: '/admin/recipients' },
+    { label: 'Average Feasibility Match', value: '96.5%', change: '< 35 mins transit', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50', link: '/admin/drivers' },
+    { label: 'Tax & Audit Certificates', value: '318', change: '80G & FSSAI Compliant', icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50', link: '/admin/certificates' },
   ]);
 
   const [recentRescues, setRecentRescues] = useState([
@@ -33,14 +35,21 @@ export default function AdminDashboard() {
       }
       const certRes = await api.getCertificates();
       if (certRes && certRes.certificates && certRes.certificates.length > 0) {
-        const liveRows = certRes.certificates.map((c) => ({
-          donor: c.donor,
-          shelter: c.recipient,
-          meals: c.cargo,
-          status: 'Certified & Protected',
-          fssaiId: '22221074000456',
-          certId: c.certId,
-        }));
+        const liveRows = certRes.certificates.map((c) => {
+          const donorName = typeof c.donor === 'object' ? (c.donor?.name || 'Live Test Restaurant') : String(c.donor || 'Live Test Restaurant');
+          const shelterName = typeof c.recipient === 'object' ? (c.recipient?.name || 'Green Future Shelter') : String(c.recipient || 'Green Future Shelter');
+          const mealsText = typeof c.donation === 'object' ? (c.donation?.description || '40 Meals') : String(c.cargo || '40 Meals');
+          const certId = String(c.id || c.certId || 'CERT-2026-001');
+          const fssai = typeof c.recipient === 'object' ? (c.recipient?.fssaiLicense || '22221074000456') : '22221074000456';
+          return {
+            donor: donorName,
+            shelter: shelterName,
+            meals: mealsText,
+            status: 'Certified & Protected',
+            fssaiId: fssai,
+            certId: certId,
+          };
+        });
         setRecentRescues((prev) => [...liveRows, ...prev.filter((p) => !liveRows.some((l) => l.certId === p.certId))]);
       }
     } catch (e) {
@@ -53,27 +62,60 @@ export default function AdminDashboard() {
   }, []);
 
   const filteredRescues = recentRescues.filter((r) => {
-    const q = searchQuery.toLowerCase().trim();
+    const q = (searchQuery || '').toLowerCase().trim();
+    const donor = String(r.donor || '').toLowerCase();
+    const shelter = String(r.shelter || '').toLowerCase();
+    const meals = String(r.meals || '').toLowerCase();
+    const certId = String(r.certId || '').toLowerCase();
     return (
       !q ||
-      r.donor.toLowerCase().includes(q) ||
-      r.shelter.toLowerCase().includes(q) ||
-      r.meals.toLowerCase().includes(q) ||
-      r.certId.toLowerCase().includes(q)
+      donor.includes(q) ||
+      shelter.includes(q) ||
+      meals.includes(q) ||
+      certId.includes(q)
     );
   });
+
+  const adminNav = [
+    { label: 'Overview', to: '/admin/dashboard', active: true },
+    { label: 'Donations Ledger', to: '/admin/donations', active: false },
+    { label: 'Verified Shelters', to: '/admin/recipients', active: false },
+    { label: 'Driver Fleet', to: '/admin/drivers', active: false },
+    { label: 'Protection Certificates', to: '/admin/certificates', active: false },
+  ];
 
   return (
     <div className="space-y-6">
       
+      {/* Admin Module Sub-Nav */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {adminNav.map((tab) => (
+          <Link
+            key={tab.to}
+            to={tab.to}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap ${
+              tab.active
+                ? 'bg-[#151c2e] text-white shadow-sm'
+                : 'bg-white/80 hover:bg-white text-slate-600 border border-white shadow-sm hover:text-slate-900'
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi, idx) => {
           const Icon = kpi.icon;
           return (
-            <div key={idx} className="rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 p-5 shadow-sm space-y-3">
+            <Link
+              key={idx}
+              to={kpi.link || '/admin/dashboard'}
+              className="rounded-3xl bg-white/85 hover:bg-white backdrop-blur-xl border border-white/80 hover:border-sky-300 p-5 shadow-sm space-y-3 transition-all hover:shadow-md hover:-translate-y-0.5 group block"
+            >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-400">{kpi.label}</span>
+                <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-600 transition">{kpi.label}</span>
                 <div className={`w-9 h-9 rounded-xl ${kpi.bg} flex items-center justify-center ${kpi.color}`}>
                   <Icon className="w-5 h-5" />
                 </div>
@@ -85,7 +127,7 @@ export default function AdminDashboard() {
                   {kpi.change}
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -118,13 +160,13 @@ export default function AdminDashboard() {
                   <td className="py-3.5 px-3 text-slate-600">{row.meals}</td>
                   <td className="py-3.5 px-3 font-mono text-[11px] text-sky-700">{row.fssaiId}</td>
                   <td className="py-3.5 px-3">
-                    <a
-                      href={`/verify/${row.certId}`}
+                    <Link
+                      to={`/verify/${row.certId}`}
                       className="font-mono text-[11px] text-indigo-600 hover:underline flex items-center gap-1"
                     >
                       {row.certId}
                       <ArrowUpRight className="w-3 h-3" />
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               ))}

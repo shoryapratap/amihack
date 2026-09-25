@@ -51,21 +51,22 @@ const AuthContext = createContext(null);
 
 
 export const AuthProvider = ({ children }) => {
-  // Load saved user from localStorage
+  // Load saved user from localStorage with safe fallback to DEFAULT_ROLES.NGO
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('sts_user');
-      const token = localStorage.getItem('token');
-      if (saved && token) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
     } catch {}
-    return null;
+    return DEFAULT_ROLES.NGO;
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     try {
-      const token = localStorage.getItem('token');
-      const saved = localStorage.getItem('sts_user');
-      return Boolean(token && saved);
+      const auth = localStorage.getItem('sts_auth');
+      if (auth !== null) return auth === 'true';
     } catch {}
     return false;
   });
@@ -73,13 +74,10 @@ export const AuthProvider = ({ children }) => {
   // Sync to localStorage
   useEffect(() => {
     try {
-      if (user && isAuthenticated) {
+      if (user) {
         localStorage.setItem('sts_user', JSON.stringify(user));
-        localStorage.setItem('sts_auth', 'true');
-      } else {
-        localStorage.removeItem('sts_user');
-        localStorage.setItem('sts_auth', 'false');
       }
+      localStorage.setItem('sts_auth', isAuthenticated ? 'true' : 'false');
     } catch {}
   }, [user, isAuthenticated]);
 
@@ -191,7 +189,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('sts_user');
     localStorage.setItem('sts_auth', 'false');
-    setUser(null);
+    setUser(DEFAULT_ROLES.NGO);
     setIsAuthenticated(false);
   };
 

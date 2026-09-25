@@ -103,7 +103,7 @@ export default function AppShell({ children }) {
   }
 
   const navItems = [
-    { to: '/', icon: LayoutGrid, label: 'Overview' },
+    { to: '/landing', icon: LayoutGrid, label: 'Platform Overview' },
     { to: '/ngo/dashboard', icon: CalendarDays, label: 'Schedule' },
     { to: '/ngo/restaurants', icon: MapPin, label: 'Nearby Restaurants' },
     { to: '/driver/dashboard', icon: Truck, label: 'Dispatch' },
@@ -114,10 +114,15 @@ export default function AppShell({ children }) {
   const getPageHeading = () => {
     if (location.pathname === '/profile') return 'User Profile';
     if (location.pathname === '/settings') return 'Account Settings';
+    if (location.pathname === '/landing' || location.pathname === '/overview') return 'Platform Overview';
     if (location.pathname === '/ngo/restaurants') return 'Nearby Restaurants';
     if (location.pathname.startsWith('/ngo')) return 'Schedule';
     if (location.pathname.startsWith('/driver')) return 'Dispatch';
-    if (location.pathname.startsWith('/admin')) return 'Operations';
+    if (location.pathname === '/admin/donations') return 'Donations Ledger';
+    if (location.pathname === '/admin/recipients') return 'Verified Shelters Registry';
+    if (location.pathname === '/admin/drivers') return 'Driver Logistics Fleet';
+    if (location.pathname === '/admin/certificates') return 'Legal Protection Certificates';
+    if (location.pathname.startsWith('/admin')) return 'Operations Command';
     if (location.pathname.startsWith('/verify')) return 'Audit Record';
     return 'Dashboard';
   };
