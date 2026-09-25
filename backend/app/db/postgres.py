@@ -40,9 +40,20 @@ def find_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
         ).mappings().first()
         return dict(row) if row else None
 
+def find_user_by_phone(phone: Optional[str]) -> Optional[Dict[str, Any]]:
+    if not phone:
+        return None
+    with pg_engine.connect() as conn:
+        row = conn.execute(
+            text('SELECT id, email, name, phone, role FROM "User" WHERE phone = :phone'),
+            {"phone": phone.strip()}
+        ).mappings().first()
+        return dict(row) if row else None
+
 def create_user_record(name: str, email: str, phone: Optional[str], role: str, password_hash: str) -> Dict[str, Any]:
     user_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc)
+    clean_phone = phone.strip() if phone else None
     with pg_engine.begin() as conn:
         conn.execute(
             text('''
@@ -53,7 +64,7 @@ def create_user_record(name: str, email: str, phone: Optional[str], role: str, p
                 "id": user_id,
                 "name": name.strip(),
                 "email": email.strip().lower(),
-                "phone": phone.strip() if phone else None,
+                "phone": clean_phone,
                 "role": role.upper(),
                 "passwordHash": password_hash,
                 "createdAt": now,
@@ -64,10 +75,82 @@ def create_user_record(name: str, email: str, phone: Optional[str], role: str, p
         "id": user_id,
         "name": name,
         "email": email.lower(),
-        "phone": phone,
+        "phone": clean_phone,
         "role": role.upper(),
         "createdAt": now.isoformat()
     }
+
+def create_recipient_for_user(
+    user_id: str,
+    org_name: str,
+    reg_num: Optional[str] = None,
+    fssai_num: Optional[str] = None,
+    address: Optional[str] = None,
+    phone: Optional[str] = None
+) -> str:
+    rec_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
+    with pg_engine.begin() as conn:
+        conn.execute(
+            text('''
+                INSERT INTO "Recipient" (
+                    id, "userId", "organizationName", "registrationNumber", "fssaiNumber",
+                    address, latitude, longitude, "capacityMeals", "dietaryPreference",
+                    "contactPerson", phone, "verificationStatus", "verifiedAt", "createdAt", "updatedAt"
+                ) VALUES (
+                    :id, :userId, :orgName, :regNum, :fssaiNum,
+                    :addr, 26.8521, 75.8054, 250, CAST('BOTH' AS "DietaryType"),
+                    :contact, :phone, CAST('APPROVED' AS "VerificationStatus"), :vAt, :now, :now
+                )
+            '''),
+            {
+                "id": rec_id,
+                "userId": user_id,
+                "orgName": org_name or "Shelter Organization",
+                "regNum": reg_num or f"DARPAN-RJ-{uuid.uuid4().hex[:6].upper()}",
+                "fssaiNum": fssai_num or f"2222107400{uuid.uuid4().hex[:4]}",
+                "addr": address or "Sector 4, Malviya Nagar, Jaipur",
+                "contact": org_name or "Coordinator",
+                "phone": phone or "+919829400000",
+                "vAt": now,
+                "now": now
+            }
+        )
+    logger.info(f"[PostgreSQL] Created Recipient profile {rec_id} for user {user_id}")
+    return rec_id
+
+def create_driver_for_user(
+    user_id: str,
+    full_name: str,
+    phone: Optional[str] = None,
+    vehicle_type: Optional[str] = None,
+    vehicle_number: Optional[str] = None
+) -> str:
+    drv_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
+    with pg_engine.begin() as conn:
+        conn.execute(
+            text('''
+                INSERT INTO "Driver" (
+                    id, "userId", "fullName", phone, "vehicleType", "vehicleNumber",
+                    "isAvailable", "currentLat", "currentLng", "isOtpVerified", "createdAt", "updatedAt"
+                ) VALUES (
+                    :id, :userId, :fullName, :phone, :vType, :vNum,
+                    true, 26.8850, 75.7920, true, :now, :now
+                )
+            '''),
+            {
+                "id": drv_id,
+                "userId": user_id,
+                "fullName": full_name or "Rescue Driver",
+                "phone": phone or "+919829400000",
+                "vType": vehicle_type or "FOUR_WHEELER",
+                "vNum": vehicle_number or f"RJ-14-EA-{uuid.uuid4().hex[:4].upper()}",
+                "now": now
+            }
+        )
+    logger.info(f"[PostgreSQL] Created Driver profile {drv_id} for user {user_id}")
+    return drv_id
 
 def init_postgres():
     """Verifies connection to surplus_to_shelter.db in PostgreSQL and ensures default users exist."""
