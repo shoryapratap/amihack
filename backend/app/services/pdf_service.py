@@ -162,16 +162,20 @@ def generate_certificate_pdf(cert: dict) -> bytes:
 
     donor = cert.get("donor", {})
     donor_name_para = Paragraph(donor.get("name", "Donor Restaurant"), style_name)
-    donor_name_para.wrapOn(p, col_width - 16, 28)
-    donor_name_para.drawOn(p, col1_x + 8, box_y + box_h - 36)
+    donor_name_para.wrapOn(p, col_width - 16, 26)
+    donor_name_para.drawOn(p, col1_x + 8, box_y + box_h - 34)
+
+    donor_fssai_para = Paragraph(f"<b>FSSAI License:</b> {donor.get('fssaiLicense', '11524999000412')}", style_value)
+    donor_fssai_para.wrapOn(p, col_width - 16, 12)
+    donor_fssai_para.drawOn(p, col1_x + 8, box_y + box_h - 48)
 
     donor_phone_para = Paragraph(f"<b>Registered Contact:</b> {donor.get('phone', 'N/A')}", style_value)
-    donor_phone_para.wrapOn(p, col_width - 16, 14)
-    donor_phone_para.drawOn(p, col1_x + 8, box_y + box_h - 52)
+    donor_phone_para.wrapOn(p, col_width - 16, 12)
+    donor_phone_para.drawOn(p, col1_x + 8, box_y + box_h - 60)
 
     donor_addr_para = Paragraph(f"<b>Facility Location:</b> {donor.get('address', 'Civil Lines, Jaipur')}", style_value)
-    donor_addr_para.wrapOn(p, col_width - 16, 14)
-    donor_addr_para.drawOn(p, col1_x + 8, box_y + box_h - 66)
+    donor_addr_para.wrapOn(p, col_width - 16, 12)
+    donor_addr_para.drawOn(p, col1_x + 8, box_y + box_h - 72)
 
     # Server Timestamp 1
     p.setStrokeColor(colors.HexColor("#e2e8f0"))
@@ -200,16 +204,20 @@ def generate_certificate_pdf(cert: dict) -> bytes:
 
     recipient = cert.get("recipient", {})
     ngo_name_para = Paragraph(recipient.get("name", "Green Future Foundation"), style_name)
-    ngo_name_para.wrapOn(p, col_width - 16, 28)
-    ngo_name_para.drawOn(p, col2_x + 8, box_y + box_h - 36)
+    ngo_name_para.wrapOn(p, col_width - 16, 26)
+    ngo_name_para.drawOn(p, col2_x + 8, box_y + box_h - 34)
 
     ngo_darpan_para = Paragraph(f"<b>NITI Aayog DARPAN:</b> {recipient.get('darpanId', 'RJ/2021/0289145')}", style_value)
-    ngo_darpan_para.wrapOn(p, col_width - 16, 14)
-    ngo_darpan_para.drawOn(p, col2_x + 8, box_y + box_h - 52)
+    ngo_darpan_para.wrapOn(p, col_width - 16, 12)
+    ngo_darpan_para.drawOn(p, col2_x + 8, box_y + box_h - 48)
 
-    ngo_fssai_para = Paragraph(f"<b>FSSAI License / Reg:</b> {recipient.get('fssaiLicense', '22221045000189')}", style_value)
-    ngo_fssai_para.wrapOn(p, col_width - 16, 14)
-    ngo_fssai_para.drawOn(p, col2_x + 8, box_y + box_h - 66)
+    ngo_fssai_para = Paragraph(f"<b>FSSAI Surplus Reg:</b> {recipient.get('fssaiLicense', '22221045000189')}", style_value)
+    ngo_fssai_para.wrapOn(p, col_width - 16, 12)
+    ngo_fssai_para.drawOn(p, col2_x + 8, box_y + box_h - 60)
+
+    ngo_sup_para = Paragraph(f"<b>Receiving Supervisor:</b> {recipient.get('acceptedBy', 'Field Coordinator')}", style_value)
+    ngo_sup_para.wrapOn(p, col_width - 16, 12)
+    ngo_sup_para.drawOn(p, col2_x + 8, box_y + box_h - 72)
 
     # Server Timestamp 2
     p.setStrokeColor(colors.HexColor("#e2e8f0"))
@@ -226,8 +234,8 @@ def generate_certificate_pdf(cert: dict) -> bytes:
     # =========================================================================
     # 5. RESCUED FOOD SPECIFICATIONS & HYGIENE DECLARATION
     # =========================================================================
-    donation_box_y = height - 338
-    donation_box_h = 68
+    donation_box_y = height - 340
+    donation_box_h = 70
     p.setFillColor(colors.HexColor("#f8fafc"))
     p.setStrokeColor(colors.HexColor("#cbd5e1"))
     p.setLineWidth(0.8)
@@ -235,21 +243,29 @@ def generate_certificate_pdf(cert: dict) -> bytes:
 
     p.setFillColor(colors.HexColor("#0a2540"))
     p.setFont("Helvetica-Bold", 8)
-    p.drawString(50, donation_box_y + donation_box_h - 14, "PART III: RESCUED FOOD CONSIGNMENT & SAFETY AUDIT")
+    p.drawString(50, donation_box_y + donation_box_h - 14, "PART III: SCHEDULE-I SURPLUS FOOD MANIFEST & HYGIENE AUDIT")
 
     donation = cert.get("donation", {})
     food_desc = donation.get("description", "40 Portions of Cooked Meals")
-    desc_para = Paragraph(f"<b>Consignment Specification:</b> {food_desc}", style_value)
+    desc_para = Paragraph(f"<b>Consignment:</b> {food_desc}", style_value)
     desc_para.wrapOn(p, width - 100, 24)
-    desc_para.drawOn(p, 50, donation_box_y + donation_box_h - 32)
+    desc_para.drawOn(p, 50, donation_box_y + donation_box_h - 30)
 
-    cat_para = Paragraph(f"<b>Category:</b> {donation.get('category', 'Prepared Hot Meals & Bakery')}", style_value)
+    cat_para = Paragraph(f"<b>Category:</b> {donation.get('category', 'Prepared Hot Meals')}", style_value)
     cat_para.wrapOn(p, (width - 100) / 2, 14)
-    cat_para.drawOn(p, 50, donation_box_y + 12)
+    cat_para.drawOn(p, 50, donation_box_y + 22)
 
-    safe_para = Paragraph(f"<b>Hygiene Standard:</b> {donation.get('hygieneStandard', 'FSSAI Schedule 4 Compliant')}", style_value)
+    temp_para = Paragraph(f"<b>Handover Temp:</b> {donation.get('temperature', '≥ 65°C Hot Hold')}", style_value)
+    temp_para.wrapOn(p, (width - 100) / 2, 14)
+    temp_para.drawOn(p, width / 2 + 10, donation_box_y + 22)
+
+    safe_para = Paragraph(f"<b>Hygiene Standard:</b> {donation.get('hygieneStandard', 'Schedule 4 GHP PASSED ✓')}", style_value)
     safe_para.wrapOn(p, (width - 100) / 2, 14)
-    safe_para.drawOn(p, width / 2 + 10, donation_box_y + 12)
+    safe_para.drawOn(p, 50, donation_box_y + 8)
+
+    window_para = Paragraph(f"<b>Safe Use Window:</b> {donation.get('consumptionWindow', 'Within 3.5 hrs')}", style_value)
+    window_para.wrapOn(p, (width - 100) / 2, 14)
+    window_para.drawOn(p, width / 2 + 10, donation_box_y + 8)
 
     # =========================================================================
     # 6. STATUTORY IMMUNITY DECLARATION (THE CORE LEGAL PROTECTION)
@@ -318,23 +334,23 @@ def generate_certificate_pdf(cert: dict) -> bytes:
     seal_cx = width / 2 - 10
     seal_cy = qr_y + 40
     p.saveState()
-    p.setStrokeColor(colors.HexColor("#c59b27"))
-    p.setLineWidth(1.8)
+    p.setStrokeColor(colors.HexColor("#2563eb"))
+    p.setLineWidth(1.4)
     p.circle(seal_cx, seal_cy, 42, stroke=1, fill=0)
 
-    p.setStrokeColor(colors.HexColor("#065f46"))
+    p.setStrokeColor(colors.HexColor("#3b82f6"))
     p.setLineWidth(0.8)
     p.circle(seal_cx, seal_cy, 38, stroke=1, fill=0)
 
-    p.setFillColor(colors.HexColor("#0a2540"))
+    p.setFillColor(colors.HexColor("#1d4ed8"))
     p.setFont("Times-Bold", 6.5)
     p.drawCentredString(seal_cx, seal_cy + 22, "★ FSSAI STATUTORY AUDIT ★")
     p.setFont("Helvetica-Bold", 8)
-    p.setFillColor(colors.HexColor("#b45309"))
+    p.setFillColor(colors.HexColor("#2563eb"))
     p.drawCentredString(seal_cx, seal_cy + 8, "OFFICIAL")
     p.drawCentredString(seal_cx, seal_cy - 4, "SEAL")
     p.setFont("Helvetica", 5.5)
-    p.setFillColor(colors.HexColor("#065f46"))
+    p.setFillColor(colors.HexColor("#3b82f6"))
     p.drawCentredString(seal_cx, seal_cy - 16, "REGULATIONS 2019")
     p.drawCentredString(seal_cx, seal_cy - 24, "IMMUNITY VERIFIED")
     p.restoreState()

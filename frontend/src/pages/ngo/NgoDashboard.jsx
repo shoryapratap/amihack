@@ -275,115 +275,13 @@ export default function NgoDashboard() {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      
+    <div className="w-full space-y-6">
       {/* ======================================================== */}
-      {/* COLUMN 1: LEFT SUB-PANEL (DOCTORS / PARTNERS & FILTERS) */}
+      {/* MAIN SCHEDULE / APPOINTMENTS GRID */}
       {/* ======================================================== */}
-      <div className="lg:col-span-4 xl:col-span-3 space-y-5">
-        
-        {/* Partners Card */}
-        <div className="rounded-3xl bg-white/80 backdrop-blur-xl border border-white/80 p-5 shadow-sm space-y-4">
-          <div>
-            <h2 className="text-base font-bold text-slate-800">Doctors</h2>
-            <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-              Plan your schedule and review your colleagues' workload
-            </p>
-          </div>
+      <div className="w-full">
+        <div className="w-full rounded-3xl bg-white/90 backdrop-blur-xl border border-white/80 p-5 sm:p-7 shadow-sm">
 
-          {/* List of Partners */}
-          <div className="space-y-3 pt-1">
-            {partners.map((partner) => {
-              const isChecked = selectedPartners.includes(partner.id);
-              return (
-                <div
-                  key={partner.id}
-                  onClick={() => togglePartner(partner.id)}
-                  className="flex items-center gap-3 cursor-pointer group select-none p-1 rounded-2xl hover:bg-slate-50/60 transition"
-                >
-                  {/* Sky-blue Checkbox */}
-                  <div
-                    className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${
-                      isChecked
-                        ? 'bg-sky-400 text-white shadow-sm'
-                        : 'border border-slate-300 bg-white group-hover:border-sky-300'
-                    }`}
-                  >
-                    {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                  </div>
-
-                  {/* Avatar */}
-                  <img
-                    src={partner.avatar}
-                    alt={partner.name}
-                    className="w-9 h-9 rounded-full object-cover shadow-sm ring-1 ring-white"
-                  />
-
-                  {/* Info */}
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-800 truncate flex items-center gap-1">
-                      {partner.name}
-                      {partner.isYou && (
-                        <span className="text-[10px] font-normal text-slate-400">(You)</span>
-                      )}
-                    </div>
-                    <div className="text-[11px] text-slate-400 truncate">{partner.role}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex justify-between items-center pt-2 border-t border-slate-100 text-xs text-slate-400">
-            <span>Others</span>
-            <button
-              onClick={() => setSelectedPartners([1])}
-              className="text-slate-400 hover:text-sky-600 transition font-medium"
-            >
-              Clear all
-            </button>
-          </div>
-        </div>
-
-        {/* Type of Consultation / Category Card */}
-        <div className="rounded-3xl bg-white/80 backdrop-blur-xl border border-white/80 p-5 shadow-sm space-y-4">
-          <h2 className="text-base font-bold text-slate-800">Type of Consultation</h2>
-
-          <div className="space-y-2.5">
-            {categories.map((cat) => {
-              const isChecked = selectedCategories.includes(cat.id);
-              return (
-                <div
-                  key={cat.id}
-                  onClick={() => toggleCategory(cat.id)}
-                  className="flex items-center gap-3 cursor-pointer group select-none py-0.5"
-                >
-                  <div
-                    className={`w-4 h-4 rounded flex items-center justify-center transition ${
-                      isChecked
-                        ? 'bg-sky-400 text-white shadow-sm'
-                        : 'border border-slate-300 bg-white group-hover:border-sky-300'
-                    }`}
-                  >
-                    {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
-                  </div>
-                  <span className="text-xs text-slate-600 group-hover:text-slate-900 transition">
-                    {cat.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-      </div>
-
-      {/* ======================================================== */}
-      {/* COLUMN 2: MAIN SCHEDULE GRID */}
-      {/* ======================================================== */}
-      <div className="lg:col-span-8 xl:col-span-9">
-        <div className="rounded-3xl bg-white/90 backdrop-blur-xl border border-white/80 p-5 sm:p-7 shadow-sm">
-          
           {/* Header Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6">
             <div>
@@ -415,7 +313,7 @@ export default function NgoDashboard() {
 
           {/* Date & View Controls */}
           <div className="flex flex-wrap items-center justify-between gap-4 pb-6">
-            
+
             {/* Date Display */}
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
@@ -436,11 +334,10 @@ export default function NgoDashboard() {
                   <button
                     key={mode}
                     onClick={() => setViewMode(mode)}
-                    className={`px-3.5 py-1 rounded-full font-semibold transition ${
-                      viewMode === mode
+                    className={`px-3.5 py-1 rounded-full font-semibold transition ${viewMode === mode
                         ? 'bg-white text-slate-800 shadow-sm'
                         : 'text-slate-400 hover:text-slate-700'
-                    }`}
+                      }`}
                   >
                     {mode}
                   </button>
@@ -459,9 +356,9 @@ export default function NgoDashboard() {
           {/* Schedule Grid Table */}
           <div className="overflow-x-auto">
             <div className="min-w-[720px] relative">
-              
+
               {/* Partner Columns Header */}
-              <div className="grid grid-cols-5 border-b border-slate-100 pb-3">
+              <div className="grid grid-cols-[4rem_1fr_1fr_1fr_1fr] border-b border-slate-100 pb-3">
                 <div className="w-16"></div>
                 {partners.map((partner) => (
                   <div key={partner.id} className="flex items-center gap-2.5 px-3">
@@ -490,8 +387,8 @@ export default function NgoDashboard() {
               {/* Hour Rows */}
               <div className="divide-y divide-slate-100/80">
                 {hours.map((hour) => (
-                  <div key={hour} className="grid grid-cols-5 min-h-[92px] items-stretch">
-                    
+                  <div key={hour} className="grid grid-cols-[4rem_1fr_1fr_1fr_1fr] min-h-[92px] items-stretch">
+
                     {/* Time Label */}
                     <div className="w-16 py-3 text-xs font-semibold text-slate-400 select-none">
                       {hour}
@@ -520,11 +417,10 @@ export default function NgoDashboard() {
                             <div
                               key={card.id}
                               onClick={() => setActiveCard(card)}
-                              className={`p-3 rounded-2xl border transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.01] flex flex-col justify-between ${
-                                card.striped
+                              className={`p-3 rounded-2xl border transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.01] flex flex-col justify-between ${card.striped
                                   ? 'bg-striped-pattern border-sky-200/80'
                                   : 'bg-white border-slate-100 hover:border-sky-300'
-                              }`}
+                                }`}
                             >
                               <div>
                                 <div className="text-xs font-bold text-slate-800 line-clamp-1">
@@ -539,7 +435,7 @@ export default function NgoDashboard() {
                                 <span className="text-[10px] text-slate-400">
                                   {card.timeLabel}
                                 </span>
-                                
+
                                 <div className="flex items-center gap-1.5">
                                   <span className={`w-3.5 h-3.5 rounded-full ${card.dotColor} shadow-sm`} />
                                 </div>
@@ -563,7 +459,7 @@ export default function NgoDashboard() {
       {/* Appointment Detail Modal */}
       {activeCard && (
         <div className="fixed inset-0 z-50 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl border border-slate-100 space-y-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl border border-slate-100 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900">{activeCard.title}</h3>
@@ -615,7 +511,7 @@ export default function NgoDashboard() {
       {/* Add New Appointment Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleAddNew} className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl border border-slate-100 space-y-4">
+          <form onSubmit={handleAddNew} className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl border border-slate-100 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-slate-900">Add New Entry</h3>
               <button
